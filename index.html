@@ -1294,32 +1294,36 @@
     }).join('');
     updateLineBadges();
   }
+ 
  function updateLineInputState() {
     const inputContainer = document.getElementById('line-input-container');
     const keyboard = document.getElementById('line-keyboard');
     const inputField = document.getElementById('line-input'); 
     const chipBar = document.getElementById('line-quick-chips');
 
-    // ★ 투명도(파란창 원인)를 없애고 모든 방에서 정상 상태(100% 불투명)로 강제 고정 ★
-    if (inputContainer) {
-      inputContainer.style.pointerEvents = 'auto';
-      inputContainer.style.opacity = '1';
-    }
-    if (keyboard) {
-      keyboard.style.pointerEvents = 'auto';
-      keyboard.style.opacity = '1';
-    }
-    if (inputField) {
-      inputField.disabled = false;
-      inputField.placeholder = "메시지 입력";
-    }
+    // ★ 항상 100% 불투명하게 설정하여 뒤쪽의 파란 배경이 비치지 않게(파란막 제거) 유지 ★
+    if (inputContainer) inputContainer.style.opacity = '1';
+    if (keyboard) keyboard.style.opacity = '1';
+    if (inputField) inputField.placeholder = "메시지 입력";
 
-    if (chipBar) {
-      // 팝업 알림이 끝나고 드랲 방일 때만 칩(빠른 답장) 표시, 그 외엔 무조건 숨김
-      if (lineRooms.draft.pushCompleted && currentLineRoom === 'draft' && autoReplyRules.length > 0) {
-        chipBar.classList.remove('hidden');
-      } else {
-        chipBar.classList.add('hidden');
+    if (!lineRooms.draft.pushCompleted) {
+      // [팝업 오기 전] 시각적으로는 정상인데, 터치만 완전히 막음 (키보드 및 입력창 안 눌림)
+      if (inputContainer) inputContainer.style.pointerEvents = 'none';
+      if (keyboard) keyboard.style.pointerEvents = 'none';
+      if (inputField) inputField.readOnly = true; 
+      if (chipBar) chipBar.classList.add('hidden');
+    } else {
+      // [팝업 온 후] 터치 잠금 해제 ➜ 키보드 정상적으로 눌림!
+      if (inputContainer) inputContainer.style.pointerEvents = 'auto';
+      if (keyboard) keyboard.style.pointerEvents = 'auto';
+      if (inputField) inputField.readOnly = false; 
+
+      if (chipBar) {
+        if (currentLineRoom === 'draft' && autoReplyRules.length > 0) {
+          chipBar.classList.remove('hidden');
+        } else {
+          chipBar.classList.add('hidden');
+        }
       }
     }
   }
@@ -1482,14 +1486,14 @@ function renderLineQuickChips() {
   }
 
   function appendKey(char) {
-    // 모든 방에서 언제든 타이핑은 가능하도록 수정
+    if (!lineRooms.draft.pushCompleted) return; // 팝업 전엔 타이핑 무시
     const input = document.getElementById('line-input');
     input.value += char;
     input.focus();
   }
 
   function backspaceKey() {
-    // 모든 방에서 언제든 지우기 가능하도록 수정
+    if (!lineRooms.draft.pushCompleted) return; // 팝업 전엔 지우기 무시
     const input = document.getElementById('line-input');
     input.value = input.value.slice(0, -1);
     input.focus();
@@ -1497,11 +1501,7 @@ function renderLineQuickChips() {
  
 function sendLineMessage() {
     if (!currentLineRoom) return;
-    
-    // ★ 핵심: 현재 방이 어디든 상관없이, 팝업 알림이 안 끝났으면 무조건 전송 차단! ★
-    if (!lineRooms.draft.pushCompleted) {
-      return; 
-    }
+    if (!lineRooms.draft.pushCompleted) return; // 팝업 전엔 전송도 무시!
 
     const input = document.getElementById('line-input');
     const text = input.value.trim();
