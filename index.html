@@ -57,7 +57,7 @@
   .ig-play { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; transition: opacity 0.2s; }
   .ig-play span { width: 56px; height: 56px; border-radius: 50%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; }
   .ig-slide.playing .ig-play { opacity: 0; }
-  .ig-mute { position: absolute; bottom: 10px; right: 10px; width: 28px; height: 28px; border-radius: 50%; background: rgba(0,0,0,0.65); color: #fff; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+  .ig-mute { position: absolute bottom: 10px; right: 10px; width: 28px; height: 28px; border-radius: 50%; background: rgba(0,0,0,0.65); color: #fff; font-size: 13px; display: flex; align-items: center; justify-content: center; }
   .ig-vtag { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.55); color: #fff; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 6px; pointer-events: none; }
 
   .chk-row { display: flex; align-items: flex-start; gap: 14px; padding: 9px 0; cursor: pointer; }
@@ -943,7 +943,7 @@
         { speaker: "엄마", text: "먹었지~ 우리 아들은?" },
         { speaker: "푸윈", text: "나도 먹었지. 오늘은 경기보지 말고 일찍 주무세요." },
         { speaker: "엄마", text: "...왜, 무슨 일 있어?" },
-        { speaker: "푸윈", text: "일은 무슨, 나 오늘 휴식이니까 괜히 언제 나오려나 보고있지 말고 일찍 주무시라고." },
+        { speaker: "푸윈", text: "일은 무슨, 나 단체훈련 빠지는 휴식일이니까 언제 나오려나 보고있지 말고 주무시라고." },
         { speaker: "엄마", text: "그런거야? 알겠어, 우리 아들 건강 잘 챙기고." },
         { speaker: "푸윈", text: "응, 엄마도." }
       ]
@@ -1288,23 +1288,26 @@
     updateLineBadges();
   }
 
-  // [추가됨] 알림 수신 상태에 따라 입력창을 활성화/비활성화 처리하는 함수
+  // [추가/수정됨] 알림 수신 상태에 따라 입력창을 활성화/비활성화 처리하는 함수
   function updateLineInputState() {
     const inputContainer = document.getElementById('line-input-container');
     const keyboard = document.getElementById('line-keyboard');
     const chipBar = document.getElementById('line-quick-chips');
+    const inputField = document.getElementById('line-input'); // 텍스트 입력창 요소
 
     if (currentLineRoom === 'draft' && !lineRooms.draft.pushCompleted) {
       inputContainer.style.pointerEvents = 'none';
       inputContainer.style.opacity = '0.5';
-      document.getElementById('line-input').placeholder = "지금은 답장할 수 없습니다.";
+      inputField.disabled = true; // [수정] 입력창 자체를 비활성화 잠금
+      inputField.placeholder = "지금은 답장할 수 없습니다.";
       keyboard.style.pointerEvents = 'none';
       keyboard.style.opacity = '0.5';
       chipBar.classList.add('hidden');
     } else {
       inputContainer.style.pointerEvents = 'auto';
       inputContainer.style.opacity = '1';
-      document.getElementById('line-input').placeholder = "메시지 입력";
+      inputField.disabled = false; // [수정] 입력창 잠금 해제
+      inputField.placeholder = "메시지 입력";
       keyboard.style.pointerEvents = 'auto';
       keyboard.style.opacity = '1';
       if (currentLineRoom === 'draft' && autoReplyRules.length > 0) {
@@ -1322,7 +1325,7 @@
     document.getElementById('line-room-screen').classList.remove('hidden');
     document.getElementById('line-room-title').textContent = room.name;
     
-    // [추가됨] 방에 입장할 때마다 입력 상태 확인 및 갱신
+    // 방에 입장할 때마다 입력 상태 확인 및 갱신
     updateLineInputState(); 
     renderLineMessages();
     renderLineQuickChips();
@@ -1478,12 +1481,14 @@
   }
 
   function appendKey(char) {
+    if (currentLineRoom === 'draft' && !lineRooms.draft.pushCompleted) return; // [수정] 방어 로직
     const input = document.getElementById('line-input');
     input.value += char;
     input.focus();
   }
 
   function backspaceKey() {
+    if (currentLineRoom === 'draft' && !lineRooms.draft.pushCompleted) return; // [수정] 방어 로직
     const input = document.getElementById('line-input');
     input.value = input.value.slice(0, -1);
     input.focus();
@@ -1491,6 +1496,9 @@
 
   function sendLineMessage() {
     if (!currentLineRoom) return;
+    // [수정] 조건 불충족 시 엔터키, 전송버튼 강제 호출 무시 방어 로직
+    if (currentLineRoom === 'draft' && !lineRooms.draft.pushCompleted) return; 
+
     const input = document.getElementById('line-input');
     const text = input.value.trim();
     if (!text) return;
