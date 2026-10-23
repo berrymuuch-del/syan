@@ -355,7 +355,7 @@
           <div id="line-input-container" class="bg-white px-2.5 py-2 flex items-center gap-2">
             <button class="w-7 h-7 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center text-lg leading-none">+</button>
             <!-- 온클릭(onclick) 이벤트로 타이핑 연출 함수(triggerAutoType) 연결 -->
-            <input id="line-input" type="text" placeholder="메시지 입력" onclick="triggerAutoType()" onkeydown="if(event.key==='Enter') sendLineMessage()" class="flex-1 bg-gray-100 rounded-full px-3.5 py-1.5 text-[13.5px] focus:outline-none">
+            <input id="line-input" type="text" readonly placeholder="메시지 입력" onclick="triggerAutoType()" onkeydown="if(event.key==='Enter') sendLineMessage()" class="flex-1 bg-gray-100 rounded-full px-3.5 py-1.5 text-[13.5px] focus:outline-none cursor-pointer">
             <button onclick="sendLineMessage()" class="w-8 h-8 rounded-full bg-[#06C755] text-white flex items-center justify-center font-bold text-sm active:scale-90 transition">➤</button>
           </div>
           <div id="line-keyboard" class="bg-[#d1d5db] p-1.5 pt-2 text-gray-900 select-none"></div>
@@ -1296,36 +1296,16 @@
   }
  
  function updateLineInputState() {
-    const inputContainer = document.getElementById('line-input-container');
-    const keyboard = document.getElementById('line-keyboard');
-    const inputField = document.getElementById('line-input'); 
     const chipBar = document.getElementById('line-quick-chips');
-
-    // ★ 항상 100% 불투명하게 설정하여 뒤쪽의 파란 배경이 비치지 않게(파란막 제거) 유지 ★
-    if (inputContainer) inputContainer.style.opacity = '1';
-    if (keyboard) keyboard.style.opacity = '1';
-    if (inputField) inputField.placeholder = "메시지 입력";
-
-    if (!lineRooms.draft.pushCompleted) {
-      // [팝업 오기 전] 시각적으로는 정상인데, 터치만 완전히 막음 (키보드 및 입력창 안 눌림)
-      if (inputContainer) inputContainer.style.pointerEvents = 'none';
-      if (keyboard) keyboard.style.pointerEvents = 'none';
-      if (inputField) inputField.readOnly = true; 
-      if (chipBar) chipBar.classList.add('hidden');
-    } else {
-      // [팝업 온 후] 터치 잠금 해제 ➜ 키보드 정상적으로 눌림!
-      if (inputContainer) inputContainer.style.pointerEvents = 'auto';
-      if (keyboard) keyboard.style.pointerEvents = 'auto';
-      if (inputField) inputField.readOnly = false; 
-
-      if (chipBar) {
-        if (currentLineRoom === 'draft' && autoReplyRules.length > 0) {
-          chipBar.classList.remove('hidden');
-        } else {
-          chipBar.classList.add('hidden');
-        }
-      }
+    
+    // 칩(버튼) 영역은 요청하신 대로 무조건 숨김 처리하여 절대 띄우지 않습니다.
+    if (chipBar) {
+      chipBar.classList.add('hidden');
     }
+  }
+
+  function renderLineQuickChips() {
+    // 칩 생성 기능을 완전히 비워두어 칩이 만들어지지 않게 합니다.
   }
   
   function openLineRoom(roomId) {
@@ -1501,7 +1481,9 @@ function renderLineQuickChips() {
  
 function sendLineMessage() {
     if (!currentLineRoom) return;
-    if (!lineRooms.draft.pushCompleted) return; // 팝업 전엔 전송도 무시!
+    
+    // ★ 모든 방에서 팝업 알림이 끝나기 전까지는 전송(엔터) 무시! ★
+    if (!lineRooms.draft.pushCompleted) return; 
 
     const input = document.getElementById('line-input');
     const text = input.value.trim();
@@ -1525,7 +1507,7 @@ function sendLineMessage() {
       ]);
     }
   }
- 
+
   function triggerAutoType() {
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
@@ -1535,12 +1517,11 @@ function sendLineMessage() {
       room.autoTyped = true; // 한 번만 실행되도록 설정
       const input = document.getElementById('line-input');
       input.value = ""; 
-      input.readOnly = true; // 타이핑 연출 중에는 실제 터치 방지
 
       // 시간을 지연시키는 헬퍼 함수
       const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
       
-      // 타이핑 효과 함수 (글자마다 약간씩 다른 속도로 입력되어 리얼함 추가)
+      // 타이핑 효과 함수
       const typeText = async (text) => {
         for (let i = 0; i < text.length; i++) {
           input.value += text.charAt(i);
@@ -1552,36 +1533,35 @@ function sendLineMessage() {
       const deleteText = async (count) => {
         for (let i = 0; i < count; i++) {
           input.value = input.value.slice(0, -1);
-          await sleep(60); // 지우는 속도
+          await sleep(60); 
         }
       };
 
       // 썼다 지웠다 하는 전체 시나리오
       const runSequence = async () => {
-        await sleep(200); // 입력창 터치 후 아주 잠깐 대기
-        
-        await typeText("아.."); // 1차 타이핑 (3글자)
-        await sleep(500); // 잠깐 멈칫 (고민하는 느낌)
-        
-        await deleteText(3); // [수정] "아.." 3글자 지움
-        await sleep(300); // 멈칫
-        
-        await typeText("ㅋㅋㅋㅋ"); // 2차 타이핑 (4글자)
-        await sleep(400); // 다시 멈칫
-        
-        await deleteText(4); // [수정] "ㅋㅋㅋㅋ" 4글자 지움
-        await sleep(200); 
-       
-        await typeText("고맙"); // 3차 타이핑 (2글자)
-        await sleep(100); // 다시 멈칫
-       
-        await deleteText(2); // [수정] "고맙" 2글자 지움
         await sleep(200); 
         
-        await typeText("ㅋㅋㅋ부끄럽네ㅜ"); // 최종 문구 타이핑
+        await typeText("아.."); 
+        await sleep(500); 
         
-        input.readOnly = false; // 타이핑 완료 후 전송 가능하도록 잠금 해제
-        input.focus();
+        await deleteText(3); 
+        await sleep(300); 
+        
+        await typeText("ㅋㅋㅋㅋ"); 
+        await sleep(400); 
+        
+        await deleteText(4); 
+        await sleep(200); 
+        
+        await typeText("고맙"); 
+        await sleep(100); 
+        
+        await deleteText(2); 
+        await sleep(200); 
+        
+        await typeText("ㅋㅋㅋ부끄럽네ㅜ"); 
+        
+        // input.readOnly 나 focus() 조작 삭제 (화면 튀는 원인 제거)
       };
 
       runSequence();
