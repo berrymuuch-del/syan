@@ -1296,18 +1296,32 @@
   }
 
  function updateLineInputState() {
-    const chipBar = document.getElementById('line-quick-chips');
+    const inputContainer = document.getElementById('line-input-container');
+    const keyboard = document.getElementById('line-keyboard');
     const inputField = document.getElementById('line-input'); 
+    const chipBar = document.getElementById('line-quick-chips');
 
-    // 1. 모든 방 공통: 시각적 잠금(회색막) 없이 타이핑 가능하게 세팅
-    inputField.placeholder = "메시지 입력"; 
+    // ★ 어떤 방이든, 언제든 무조건 키보드와 입력창을 정상(불투명) 상태로 강제 유지 ★
+    if (inputContainer) {
+      inputContainer.style.pointerEvents = 'auto';
+      inputContainer.style.opacity = '1';
+    }
+    if (keyboard) {
+      keyboard.style.pointerEvents = 'auto';
+      keyboard.style.opacity = '1';
+    }
+    if (inputField) {
+      inputField.disabled = false;
+      inputField.placeholder = "메시지 입력";
+    }
 
-    // 2. 일단 칩(빠른 답장)은 무조건 숨김 처리
-    if (chipBar) chipBar.classList.add('hidden');
-
-    // 3. 알림 이벤트가 완전히 끝났고 && 현재 방이 '드랲 방'일 때만 칩 다시 표시
-    if (lineRooms.draft.pushCompleted && currentLineRoom === 'draft' && autoReplyRules.length > 0) {
-      if (chipBar) chipBar.classList.remove('hidden');
+    if (chipBar) {
+      // 알림이 끝났고 드랲 방일 때만 칩(빠른 답장) 표시, 아니면 무조건 숨김
+      if (lineRooms.draft.pushCompleted && currentLineRoom === 'draft' && autoReplyRules.length > 0) {
+        chipBar.classList.remove('hidden');
+      } else {
+        chipBar.classList.add('hidden');
+      }
     }
   }
   
@@ -1484,8 +1498,10 @@ function renderLineQuickChips() {
 
   function sendLineMessage() {
     if (!currentLineRoom) return;
-    // [핵심] 푸시 알림 완료 전까지는 엔터/전송 버튼을 눌러도 메시지가 전송되지 않고 무시됨
-    if (currentLineRoom === 'draft' && !lineRooms.draft.pushCompleted) return; 
+    
+    // ★ 핵심: 'draft' 방인지 검사하는 조건을 아예 빼버림!
+    // 팝업 알림이 끝나기 전(`!lineRooms.draft.pushCompleted`)이면 무조건 전송을 차단 ★
+    if (!lineRooms.draft.pushCompleted) return; 
 
     const input = document.getElementById('line-input');
     const text = input.value.trim();
