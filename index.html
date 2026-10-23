@@ -352,7 +352,8 @@
           </div>
           <div id="line-messages-area" class="flex-1 overflow-y-auto px-3 py-2 space-y-2.5 no-scrollbar"></div>
           <div id="line-quick-chips" class="bg-[#8cabd9] px-2.5 py-1.5 flex items-center gap-1.5 overflow-x-auto no-scrollbar border-t border-black/5"></div>
-          <div class="bg-white px-2.5 py-2 flex items-center gap-2">
+          <!-- ID line-input-container 추가 -->
+          <div id="line-input-container" class="bg-white px-2.5 py-2 flex items-center gap-2">
             <button class="w-7 h-7 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center text-lg leading-none">+</button>
             <input id="line-input" type="text" placeholder="메시지 입력" onkeydown="if(event.key==='Enter') sendLineMessage()" class="flex-1 bg-gray-100 rounded-full px-3.5 py-1.5 text-[13.5px] focus:outline-none">
             <button onclick="sendLineMessage()" class="w-8 h-8 rounded-full bg-[#06C755] text-white flex items-center justify-center font-bold text-sm active:scale-90 transition">➤</button>
@@ -715,7 +716,11 @@
   let isMusicPlaying = false;
   let callTimers = [];
 
-  const autoReplyRules = [];
+  // [추가됨] 22드랲 채팅방이 활성화된 후 보낼 수 있는 빠른 답장 칩 기능 설정
+  const autoReplyRules = [
+    { keyword: "부끄", chipLabel: "아 부끄럽네", chipSendText: "아 부끄럽네 ㅋㅋㅋㅋ", replies: ["ㅋㅋㅋㅋㅋㅋ", "잘하자 푸윈아"] },
+    { keyword: "고맙", chipLabel: "고맙다 다들", chipSendText: "고맙다 다들 ㅋㅋㅋ", replies: ["내일 밥이나 사", "ㅇㅋㅇㅋ"] }
+  ];
 
   // ================= MUSIC DATA =================
   let currentTrackIdx = 0;
@@ -831,7 +836,8 @@
         { sender: "me", text: "다들 잘자.", time: "오후 11:10" },
         { sender: "them", name: "22넛", text: "ㅋㅋㅋㅋ냅다 재우네", time: "오후 11:10" }
       ],
-      hasTriggeredInitialPush: false
+      hasTriggeredInitialPush: false,
+      pushCompleted: false // [추가됨] 알림 푸시가 다 끝나고 입력창이 열렸는지 체크
     },
     mom: {
       id: "mom", name: "엄마", avatar: "", unread: 0, time: "어제",
@@ -1282,6 +1288,31 @@
     updateLineBadges();
   }
 
+  // [추가됨] 알림 수신 상태에 따라 입력창을 활성화/비활성화 처리하는 함수
+  function updateLineInputState() {
+    const inputContainer = document.getElementById('line-input-container');
+    const keyboard = document.getElementById('line-keyboard');
+    const chipBar = document.getElementById('line-quick-chips');
+
+    if (currentLineRoom === 'draft' && !lineRooms.draft.pushCompleted) {
+      inputContainer.style.pointerEvents = 'none';
+      inputContainer.style.opacity = '0.5';
+      document.getElementById('line-input').placeholder = "지금은 답장할 수 없습니다.";
+      keyboard.style.pointerEvents = 'none';
+      keyboard.style.opacity = '0.5';
+      chipBar.classList.add('hidden');
+    } else {
+      inputContainer.style.pointerEvents = 'auto';
+      inputContainer.style.opacity = '1';
+      document.getElementById('line-input').placeholder = "메시지 입력";
+      keyboard.style.pointerEvents = 'auto';
+      keyboard.style.opacity = '1';
+      if (currentLineRoom === 'draft' && autoReplyRules.length > 0) {
+          chipBar.classList.remove('hidden');
+      }
+    }
+  }
+
   function openLineRoom(roomId) {
     currentLineRoom = roomId;
     const room = lineRooms[roomId];
@@ -1290,9 +1321,13 @@
     document.getElementById('line-list-screen').classList.add('hidden');
     document.getElementById('line-room-screen').classList.remove('hidden');
     document.getElementById('line-room-title').textContent = room.name;
+    
+    // [추가됨] 방에 입장할 때마다 입력 상태 확인 및 갱신
+    updateLineInputState(); 
     renderLineMessages();
     renderLineQuickChips();
 
+    // 넛 대화방 입장 시 22드랲(5)에 푸시 알림 트리거 및 입력창 활성화 대기
     if (roomId === 'nut' && !lineRooms.draft.hasTriggeredInitialPush) {
       lineRooms.draft.hasTriggeredInitialPush = true;
       setTimeout(() => {
@@ -1302,6 +1337,15 @@
           { name: "22넛", text: "탕큐 존나 잘해야겟네ㅜ" },
           { name: "22홍", text: "헐 귀여워 나때도 해주라고 해줘" }
         ]);
+        
+        // 마지막 메시지가 도착할 즈음(3200ms 후) 22드랲(5) 방의 입력 기능 활성화
+        setTimeout(() => {
+          lineRooms.draft.pushCompleted = true;
+          if (currentLineRoom === 'draft') {
+            updateLineInputState();
+            renderLineQuickChips();
+          }
+        }, 3200);
       }, 1500);
     }
   }
@@ -1415,7 +1459,8 @@
 
   function renderLineQuickChips() {
     const chipBar = document.getElementById('line-quick-chips');
-    if (currentLineRoom !== 'draft' || autoReplyRules.length === 0) {
+    // 알림 푸시가 완료되기 전이면 칩도 가려줍니다
+    if (currentLineRoom !== 'draft' || autoReplyRules.length === 0 || !lineRooms.draft.pushCompleted) {
       chipBar.classList.add('hidden');
       return;
     }
@@ -1457,9 +1502,10 @@
     input.value = '';
     renderLineMessages();
 
+    // 입력 내용에 따라 추가적인 답장(리액션) 연출
     const matchedRule = autoReplyRules.find(r => text.includes(r.keyword));
     if (matchedRule) runSequentialReplies(currentLineRoom, matchedRule.replies);
-    else if (currentLineRoom === 'draft') runSequentialReplies('draft', ["ㅋㅋㅋㅋ 형 뭐해요 지금?"]);
+    else if (currentLineRoom === 'draft') runSequentialReplies('draft', ["ㅋㅋㅋㅋㅋㅋ", "부담 좀 가지라고~"]);
   }
 
   function runSequentialReplies(roomId, repliesArray) {
