@@ -85,6 +85,16 @@
   .ios-switch .knob { position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; background: #fff; border-radius: 50%; box-shadow: 0 3px 8px rgba(0,0,0,0.15), 0 1px 1px rgba(0,0,0,0.16); transition: transform 0.25s cubic-bezier(0.32,0.72,0,1); }
   .ios-switch input:checked ~ .track { background: #34c759; }
   .ios-switch input:checked ~ .knob { transform: translateX(20px); }
+ @media (max-width: 600px) {
+  body { background: #000; }
+  .iphone-frame {
+    width: 100%; height: 100%;
+    padding: 0; border-radius: 0; box-shadow: none;
+    top: 0; left: 0;
+    transform: none !important;
+  }
+  .iphone-screen { border-radius: 0; }
+}
 </style>
 </head>
 <body>
@@ -355,7 +365,7 @@
           <div id="line-input-container" class="bg-white px-2.5 py-2 flex items-center gap-2">
             <button class="w-7 h-7 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center text-lg leading-none">+</button>
             <!-- 온클릭(onclick) 이벤트로 타이핑 연출 함수(triggerAutoType) 연결 -->
-            <input id="line-input" type="text" placeholder="메시지 입력" onclick="triggerAutoType()" onkeydown="if(event.key==='Enter') sendLineMessage()" class="flex-1 bg-gray-100 rounded-full px-3.5 py-1.5 text-[13.5px] focus:outline-none">
+            <input id="line-input" type="text" placeholder="메시지 입력" readonly inputmode="none" onclick="triggerAutoType()" onkeydown="if(event.key==='Enter') sendLineMessage()" class="flex-1 bg-gray-100 rounded-full px-3.5 py-1.5 text-[13.5px] focus:outline-none">
             <button onclick="sendLineMessage()" class="w-8 h-8 rounded-full bg-[#06C755] text-white flex items-center justify-center font-bold text-sm active:scale-90 transition">➤</button>
           </div>
           <div id="line-keyboard" class="bg-[#d1d5db] p-1.5 pt-2 text-gray-900 select-none"></div>
@@ -691,6 +701,7 @@
     const vw = vv ? vv.width : window.innerWidth;
     // body를 실제 보이는 높이에 맞춤 (사파리의 100vh 버그 방지)
     document.body.style.height = vh + 'px';
+   if (window.innerWidth <= 600) { f.style.transform = ''; return; }
     const margin = 12; // 화면 가장자리 여백
     const scale = Math.min(1, (vh - margin * 2) / 830, (vw - margin * 2) / 390);
     f.style.transform = 'translate(-50%, -50%) scale(' + scale + ')';
@@ -1482,18 +1493,14 @@ function renderLineQuickChips() {
   }
 
   function appendKey(char) {
-    // 모든 방에서 언제든 타이핑은 가능하도록 수정
-    const input = document.getElementById('line-input');
-    input.value += char;
-    input.focus();
-  }
+  const input = document.getElementById('line-input');
+  input.value += char;
+}
 
-  function backspaceKey() {
-    // 모든 방에서 언제든 지우기 가능하도록 수정
-    const input = document.getElementById('line-input');
-    input.value = input.value.slice(0, -1);
-    input.focus();
-  }
+function backspaceKey() {
+  const input = document.getElementById('line-input');
+  input.value = input.value.slice(0, -1);
+}
  
 function sendLineMessage() {
     if (!currentLineRoom) return;
@@ -1535,7 +1542,6 @@ function sendLineMessage() {
       room.autoTyped = true; // 한 번만 실행되도록 설정
       const input = document.getElementById('line-input');
       input.value = ""; 
-      input.readOnly = true; // 타이핑 연출 중에는 실제 터치 방지
 
       // 시간을 지연시키는 헬퍼 함수
       const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -1579,9 +1585,6 @@ function sendLineMessage() {
         await sleep(200); 
         
         await typeText("ㅋㅋㅋ부끄럽네ㅜ"); // 최종 문구 타이핑
-        
-        input.readOnly = false; // 타이핑 완료 후 전송 가능하도록 잠금 해제
-        input.focus();
       };
 
       runSequence();
