@@ -354,7 +354,8 @@
           
           <div id="line-input-container" class="bg-white px-2.5 py-2 flex items-center gap-2">
             <button class="w-7 h-7 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center text-lg leading-none">+</button>
-            <input id="line-input" type="text" placeholder="메시지 입력" onkeydown="if(event.key==='Enter') sendLineMessage()" class="flex-1 bg-gray-100 rounded-full px-3.5 py-1.5 text-[13.5px] focus:outline-none">
+            <!-- 온클릭(onclick) 이벤트로 타이핑 연출 함수(triggerAutoType) 연결 -->
+            <input id="line-input" type="text" placeholder="메시지 입력" onclick="triggerAutoType()" onkeydown="if(event.key==='Enter') sendLineMessage()" class="flex-1 bg-gray-100 rounded-full px-3.5 py-1.5 text-[13.5px] focus:outline-none">
             <button onclick="sendLineMessage()" class="w-8 h-8 rounded-full bg-[#06C755] text-white flex items-center justify-center font-bold text-sm active:scale-90 transition">➤</button>
           </div>
           <div id="line-keyboard" class="bg-[#d1d5db] p-1.5 pt-2 text-gray-900 select-none"></div>
@@ -717,8 +718,15 @@
 
   // 22드랲 채팅방이 활성화된 후 보낼 수 있는 빠른 답장 칩 기능 설정
   const autoReplyRules = [
-    { keyword: "부끄", chipLabel: "아 부끄럽네", chipSendText: "아 부끄럽네 ㅋㅋㅋㅋ", replies: ["ㅋㅋㅋㅋㅋㅋ", "잘하자 푸윈아"] },
-    { keyword: "고맙", chipLabel: "고맙다 다들", chipSendText: "고맙다 다들 ㅋㅋㅋ", replies: ["내일 밥이나 사", "ㅇㅋㅇㅋ"] }
+    { 
+      keyword: "부끄", 
+      chipLabel: "아 부끄럽네", 
+      chipSendText: "아 부끄럽네 ㅋㅋㅋㅋ", 
+      replies: [
+        { name: "22넛", text: "ㅋㅋㅋㅋㅋㅋ" }, 
+        { name: "22옴", text: "푸니최애푸푸><" }
+      ] 
+    }
   ];
 
   // ================= MUSIC DATA =================
@@ -1287,7 +1295,6 @@
     updateLineBadges();
   }
 
-  // [수정됨] 회색 비활성화 효과 모두 제거, 겉모습은 그대로 유지하고 알림 오기 전엔 칩만 숨김
   function updateLineInputState() {
     const chipBar = document.getElementById('line-quick-chips');
 
@@ -1300,7 +1307,7 @@
       }
     }
   }
- 
+  
   function openLineRoom(roomId) {
     currentLineRoom = roomId;
     const room = lineRooms[roomId];
@@ -1465,7 +1472,7 @@
     sendLineMessage();
   }
 
-  // [수정됨] 타이핑 자체는 허용
+  // 타이핑 자체는 허용
   function appendKey(char) {
     const input = document.getElementById('line-input');
     input.value += char;
@@ -1496,23 +1503,89 @@
 
     // 입력 내용에 따라 추가적인 답장(리액션) 연출
     const matchedRule = autoReplyRules.find(r => text.includes(r.keyword));
-    if (matchedRule) runSequentialReplies(currentLineRoom, matchedRule.replies);
-    else if (currentLineRoom === 'draft') runSequentialReplies('draft', ["ㅋㅋㅋㅋㅋㅋ", "부담 좀 가지라고~"]);
+    if (matchedRule) {
+      runSequentialReplies(currentLineRoom, matchedRule.replies);
+    } else if (currentLineRoom === 'draft') {
+      runSequentialReplies('draft', [
+        { name: "22옴", text: "다들 화이팅합시다ㅏㅏㅏㅏㅏ" }, 
+        { name: "22산타", text: "아자아자!!!!!!!" }
+      ]);
+    }
+  }
+
+  function triggerAutoType() {
+    if (!currentLineRoom) return;
+    const room = lineRooms[currentLineRoom];
+    
+    // 22드랲(draft) 방이고, 알림이 다 끝났으며, 아직 자동 타이핑을 하지 않은 경우 실행
+    if (currentLineRoom === 'draft' && room.pushCompleted && !room.autoTyped) {
+      room.autoTyped = true; // 한 번만 실행되도록 설정
+      const input = document.getElementById('line-input');
+      input.value = ""; 
+      input.readOnly = true; // 타이핑 연출 중에는 실제 터치 방지
+
+      // 시간을 지연시키는 헬퍼 함수
+      const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+      
+      // 타이핑 효과 함수 (글자마다 약간씩 다른 속도로 입력되어 리얼함 추가)
+      const typeText = async (text) => {
+        for (let i = 0; i < text.length; i++) {
+          input.value += text.charAt(i);
+          await sleep(80 + Math.random() * 50); 
+        }
+      };
+
+      // 지우기 효과 함수
+      const deleteText = async (count) => {
+        for (let i = 0; i < count; i++) {
+          input.value = input.value.slice(0, -1);
+          await sleep(60); // 지우는 속도
+        }
+      };
+
+      // 썼다 지웠다 하는 전체 시나리오
+      const runSequence = async () => {
+        await sleep(200); // 입력창 터치 후 아주 잠깐 대기
+        
+        await typeText("아 진짜"); // 1차 타이핑
+        await sleep(500); // 잠깐 멈칫 (고민하는 느낌)
+        
+        await deleteText(2); // "진짜" 2글자 지움
+        await sleep(300); // 멈칫
+        
+        await typeText("고맙네"); // 2차 타이핑
+        await sleep(400); // 다시 멈칫
+        
+        await deleteText(3); // "고맙네" 3글자 지움
+        await sleep(200); 
+        
+        await typeText("부끄럽네 ㅋㅋㅋㅋ"); // 최종 문구 타이핑
+        
+        input.readOnly = false; // 타이핑 완료 후 전송 가능하도록 잠금 해제
+        input.focus();
+      };
+
+      runSequence();
+    }
   }
 
   function runSequentialReplies(roomId, repliesArray) {
     const room = lineRooms[roomId];
     let delay = 500;
-    repliesArray.forEach((replyText) => {
+    repliesArray.forEach((replyObj) => {
+      // 이름이 지정된 경우와 텍스트만 있는 경우 모두 처리
+      const replyText = typeof replyObj === 'object' ? replyObj.text : replyObj;
+      const replyName = typeof replyObj === 'object' ? replyObj.name : null;
+
       setTimeout(() => {
-        room.messages.push({ sender: 'typing', text: '...', time: '' });
+        room.messages.push({ sender: 'typing', name: replyName, text: '...', time: '' });
         if (currentLineRoom === roomId) renderLineMessages();
       }, delay);
       delay += 1200;
       setTimeout(() => {
         room.messages = room.messages.filter(m => m.sender !== 'typing');
         const divider = ensureTodayDivider(room);
-        room.messages.push({ dateDivider: divider, sender: 'them', text: replyText, time: '오전 12:16' });
+        room.messages.push({ dateDivider: divider, sender: 'them', name: replyName, text: replyText, time: '오전 12:16' });
         room.time = '오전 12:16';
         if (currentLineRoom === roomId) {
           renderLineMessages();
