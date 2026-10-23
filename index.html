@@ -2,7 +2,8 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
 <title>Phuwin_iPhone</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
@@ -12,6 +13,8 @@
   .iphone-frame { width: 390px; height: 830px; background: #000; border-radius: 56px; padding: 12px; box-shadow: 0 0 0 2px #334155, 0 0 0 5px #1e293b, 0 25px 60px -10px rgba(0,0,0,0.85); position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
   .iphone-screen { width: 100%; height: 100%; background: #000; border-radius: 45px; position: relative; overflow: hidden; display: flex; flex-direction: column; }
   
+ html, body { background: #000; overscroll-behavior: none; touch-action: manipulation; }
+ 
   /* [모바일 대응] 사파리 주소창/하단바에 dock이 가려지지 않도록 실제 보이는 화면(dvh)에 맞춤 */
   html { height: 100%; }
   .iphone-frame { transform-origin: center center; }
@@ -701,10 +704,13 @@
     const vw = vv ? vv.width : window.innerWidth;
     // body를 실제 보이는 높이에 맞춤 (사파리의 100vh 버그 방지)
     document.body.style.height = vh + 'px';
-   if (window.innerWidth <= 600) { f.style.transform = ''; return; }
-    const margin = 12; // 화면 가장자리 여백
-    const scale = Math.min(1, (vh - margin * 2) / 830, (vw - margin * 2) / 390);
-    f.style.transform = 'translate(-50%, -50%) scale(' + scale + ')';
+   if (vw <= 600) {
+  f.style.transform = '';
+  f.style.width = vw + 'px';
+  f.style.height = vh + 'px';   // 사파리 툴바를 뺀 실제 보이는 높이
+  return;
+}
+f.style.width = ''; f.style.height = '';
   }
   window.addEventListener('resize', fitPhone);
   window.addEventListener('orientationchange', () => setTimeout(fitPhone, 200));
@@ -1493,11 +1499,13 @@ function renderLineQuickChips() {
   }
 
   function appendKey(char) {
+   if (lineRooms.draft.isTyping) return;
   const input = document.getElementById('line-input');
   input.value += char;
 }
 
 function backspaceKey() {
+ if (lineRooms.draft.isTyping) return;
   const input = document.getElementById('line-input');
   input.value = input.value.slice(0, -1);
 }
@@ -1534,62 +1542,42 @@ function sendLineMessage() {
   }
  
   function triggerAutoType() {
-    if (!currentLineRoom) return;
-    const room = lineRooms[currentLineRoom];
-    
-    // 22드랲(draft) 방이고, 알림이 다 끝났으며, 아직 자동 타이핑을 하지 않은 경우 실행
-    if (currentLineRoom === 'draft' && room.pushCompleted && !room.autoTyped) {
-      room.autoTyped = true; // 한 번만 실행되도록 설정
-      const input = document.getElementById('line-input');
-      input.value = ""; 
+  if (!currentLineRoom) return;
+  const room = lineRooms[currentLineRoom];
 
-      // 시간을 지연시키는 헬퍼 함수
-      const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-      
-      // 타이핑 효과 함수 (글자마다 약간씩 다른 속도로 입력되어 리얼함 추가)
-      const typeText = async (text) => {
-        for (let i = 0; i < text.length; i++) {
-          input.value += text.charAt(i);
-          await sleep(80 + Math.random() * 50); 
-        }
-      };
+  if (currentLineRoom === 'draft' && room.pushCompleted && !room.autoTyped) {
+    room.autoTyped = true;
+    room.isTyping = true;               // 연출 중 가상 키보드 입력 차단용
+    const input = document.getElementById('line-input');
+    input.value = "";
 
-      // 지우기 효과 함수
-      const deleteText = async (count) => {
-        for (let i = 0; i < count; i++) {
-          input.value = input.value.slice(0, -1);
-          await sleep(60); // 지우는 속도
-        }
-      };
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    const typeText = async (text) => {
+      for (let i = 0; i < text.length; i++) {
+        input.value += text.charAt(i);
+        await sleep(80 + Math.random() * 50);
+      }
+    };
+    const deleteText = async (count) => {
+      for (let i = 0; i < count; i++) {
+        input.value = input.value.slice(0, -1);
+        await sleep(60);
+      }
+    };
 
-      // 썼다 지웠다 하는 전체 시나리오
-      const runSequence = async () => {
-        await sleep(200); // 입력창 터치 후 아주 잠깐 대기
-        
-        await typeText("아.."); // 1차 타이핑 (3글자)
-        await sleep(500); // 잠깐 멈칫 (고민하는 느낌)
-        
-        await deleteText(3); // [수정] "아.." 3글자 지움
-        await sleep(300); // 멈칫
-        
-        await typeText("ㅋㅋㅋㅋ"); // 2차 타이핑 (4글자)
-        await sleep(400); // 다시 멈칫
-        
-        await deleteText(4); // [수정] "ㅋㅋㅋㅋ" 4글자 지움
-        await sleep(200); 
-       
-        await typeText("고맙"); // 3차 타이핑 (2글자)
-        await sleep(100); // 다시 멈칫
-       
-        await deleteText(2); // [수정] "고맙" 2글자 지움
-        await sleep(200); 
-        
-        await typeText("ㅋㅋㅋ부끄럽네ㅜ"); // 최종 문구 타이핑
-      };
-
-      runSequence();
-    }
+    (async () => {
+      await sleep(200);
+      await typeText("아.."); await sleep(500);
+      await deleteText(3);    await sleep(300);
+      await typeText("ㅋㅋㅋㅋ"); await sleep(400);
+      await deleteText(4);    await sleep(200);
+      await typeText("고맙"); await sleep(100);
+      await deleteText(2);    await sleep(200);
+      await typeText("ㅋㅋㅋ부끄럽네ㅜ");
+      room.isTyping = false;
+    })();
   }
+}
 
   function runSequentialReplies(roomId, repliesArray) {
     const room = lineRooms[roomId];
