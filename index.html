@@ -1294,14 +1294,13 @@
     }).join('');
     updateLineBadges();
   }
-
  function updateLineInputState() {
     const inputContainer = document.getElementById('line-input-container');
     const keyboard = document.getElementById('line-keyboard');
     const inputField = document.getElementById('line-input'); 
     const chipBar = document.getElementById('line-quick-chips');
 
-    // ★ 어떤 방이든, 언제든 무조건 키보드와 입력창을 정상(불투명) 상태로 강제 유지 ★
+    // ★ 투명도(파란창 원인)를 없애고 모든 방에서 정상 상태(100% 불투명)로 강제 고정 ★
     if (inputContainer) {
       inputContainer.style.pointerEvents = 'auto';
       inputContainer.style.opacity = '1';
@@ -1316,7 +1315,7 @@
     }
 
     if (chipBar) {
-      // 알림이 끝났고 드랲 방일 때만 칩(빠른 답장) 표시, 아니면 무조건 숨김
+      // 팝업 알림이 끝나고 드랲 방일 때만 칩(빠른 답장) 표시, 그 외엔 무조건 숨김
       if (lineRooms.draft.pushCompleted && currentLineRoom === 'draft' && autoReplyRules.length > 0) {
         chipBar.classList.remove('hidden');
       } else {
@@ -1495,13 +1494,14 @@ function renderLineQuickChips() {
     input.value = input.value.slice(0, -1);
     input.focus();
   }
-
-  function sendLineMessage() {
+ 
+function sendLineMessage() {
     if (!currentLineRoom) return;
     
-    // ★ 핵심: 'draft' 방인지 검사하는 조건을 아예 빼버림!
-    // 팝업 알림이 끝나기 전(`!lineRooms.draft.pushCompleted`)이면 무조건 전송을 차단 ★
-    if (!lineRooms.draft.pushCompleted) return; 
+    // ★ 핵심: 현재 방이 어디든 상관없이, 팝업 알림이 안 끝났으면 무조건 전송 차단! ★
+    if (!lineRooms.draft.pushCompleted) {
+      return; 
+    }
 
     const input = document.getElementById('line-input');
     const text = input.value.trim();
@@ -1525,7 +1525,7 @@ function renderLineQuickChips() {
       ]);
     }
   }
-
+ 
   function triggerAutoType() {
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
