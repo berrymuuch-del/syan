@@ -1104,13 +1104,23 @@
     const lockEl = document.getElementById('view-lock');
     let startY = 0, currentY = 0, isDragging = false;
 
-    const onStart = (y) => { startY = y; currentY = y; isDragging = true; lockEl.style.transition = 'none'; };
-    const onMove = (y) => {
+    const onStart = (e) => {
+      const y = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+      startY = y; currentY = y; isDragging = true;
+      lockEl.style.transition = 'none';
+    };
+    
+    const onMove = (e) => {
       if (!isDragging) return;
+      // 🚨 이 부분이 핵심입니다! 아이폰에서 화면이 들썩이면서 터치가 끊기는 현상을 강제로 막아줍니다.
+      if (e.cancelable) e.preventDefault(); 
+      
+      const y = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
       currentY = y;
       const deltaY = currentY - startY;
       if (deltaY < 0) lockEl.style.transform = `translateY(${deltaY}px)`;
     };
+    
     const onEnd = () => {
       if (!isDragging) return;
       isDragging = false;
@@ -1129,11 +1139,13 @@
       }
     };
 
-    lockEl.addEventListener('mousedown', (e) => onStart(e.clientY));
-    window.addEventListener('mousemove', (e) => onMove(e.clientY));
+    // 모바일 터치 이벤트에 { passive: false }를 주어야 preventDefault가 정상 작동합니다.
+    lockEl.addEventListener('mousedown', onStart);
+    window.addEventListener('mousemove', onMove, { passive: false });
     window.addEventListener('mouseup', onEnd);
-    lockEl.addEventListener('touchstart', (e) => onStart(e.touches[0].clientY), { passive: true });
-    window.addEventListener('touchmove', (e) => { if (isDragging) onMove(e.touches[0].clientY); }, { passive: true });
+    
+    lockEl.addEventListener('touchstart', onStart, { passive: false });
+    window.addEventListener('touchmove', onMove, { passive: false });
     window.addEventListener('touchend', onEnd);
   }
 
