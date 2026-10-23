@@ -1292,7 +1292,7 @@
     const chipBar = document.getElementById('line-quick-chips');
 
     if (currentLineRoom === 'draft' && !lineRooms.draft.pushCompleted) {
-      // 알림이 끝날 때까지 칩 숨김
+      // 알림이 끝날 때까지 칩만 숨겨둠 (회색 처리 모두 제거)
       chipBar.classList.add('hidden');
     } else {
       if (currentLineRoom === 'draft' && autoReplyRules.length > 0) {
@@ -1300,7 +1300,7 @@
       }
     }
   }
-
+ 
   function openLineRoom(roomId) {
     currentLineRoom = roomId;
     const room = lineRooms[roomId];
