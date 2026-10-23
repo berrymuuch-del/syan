@@ -88,16 +88,20 @@
   .ios-switch .knob { position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; background: #fff; border-radius: 50%; box-shadow: 0 3px 8px rgba(0,0,0,0.15), 0 1px 1px rgba(0,0,0,0.16); transition: transform 0.25s cubic-bezier(0.32,0.72,0,1); }
   .ios-switch input:checked ~ .track { background: #34c759; }
   .ios-switch input:checked ~ .knob { transform: translateX(20px); }
- @media (max-width: 600px) {
-  body { background: #000; }
-  .iphone-frame {
-    width: 100%; height: 100%;
-    padding: 0; border-radius: 0; box-shadow: none;
-    top: 0; left: 0;
-    transform: none !important;
+ @media (max-width: 768px) {
+    body { background: #000; }
+    .iphone-frame {
+      width: 100% !important; 
+      height: 100% !important;
+      padding: 0 !important; 
+      border-radius: 0 !important; 
+      box-shadow: none !important;
+      top: 0 !important; 
+      left: 0 !important;
+      transform: none !important;
+    }
+    .iphone-screen { border-radius: 0 !important; }
   }
-  .iphone-screen { border-radius: 0; }
-}
 </style>
 </head>
 <body>
@@ -368,7 +372,7 @@
           <div id="line-input-container" class="bg-white px-2.5 py-2 flex items-center gap-2">
             <button class="w-7 h-7 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center text-lg leading-none">+</button>
             <!-- 온클릭(onclick) 이벤트로 타이핑 연출 함수(triggerAutoType) 연결 -->
-            <input id="line-input" type="text" placeholder="메시지 입력" readonly inputmode="none" onclick="triggerAutoType()" onkeydown="if(event.key==='Enter') sendLineMessage()" class="flex-1 bg-gray-100 rounded-full px-3.5 py-1.5 text-[13.5px] focus:outline-none">
+            <input id="line-input" type="text" placeholder="메시지 입력" readonly inputmode="none" onfocus="this.blur()" onclick="triggerAutoType()" onkeydown="if(event.key==='Enter') sendLineMessage()" class="flex-1 bg-gray-100 rounded-full px-3.5 py-1.5 text-[16px] focus:outline-none">
             <button onclick="sendLineMessage()" class="w-8 h-8 rounded-full bg-[#06C755] text-white flex items-center justify-center font-bold text-sm active:scale-90 transition">➤</button>
           </div>
           <div id="line-keyboard" class="bg-[#d1d5db] p-1.5 pt-2 text-gray-900 select-none"></div>
@@ -695,32 +699,23 @@
 <script>
   // 폰 프레임(390x830) 비율을 그대로 유지하면서, 사파리 주소창/하단바를 뺀 '실제 보이는 영역'에 맞춰 전체를 축소
   function fitPhone() {
-    const f = document.querySelector('.iphone-frame');
-    if (!f) return;
-    const vv = window.visualViewport;
-    // 핀치 줌 중에는 건드리지 않음
-    if (vv && vv.scale > 1.01) return;
-    const vh = vv ? vv.height : window.innerHeight;
-    const vw = vv ? vv.width : window.innerWidth;
-    // body를 실제 보이는 높이에 맞춤 (사파리의 100vh 버그 방지)
-    document.body.style.height = vh + 'px';
-   if (vw <= 600) {
-  f.style.transform = '';
-  f.style.width = vw + 'px';
-  f.style.height = vh + 'px';   // 사파리 툴바를 뺀 실제 보이는 높이
-  return;
-}
-f.style.width = ''; f.style.height = '';
-  }
-  window.addEventListener('resize', fitPhone);
-  window.addEventListener('orientationchange', () => setTimeout(fitPhone, 200));
-  window.addEventListener('pageshow', fitPhone);
-  window.addEventListener('scroll', fitPhone, { passive: true });
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', fitPhone);
-    window.visualViewport.addEventListener('scroll', fitPhone);
-  }
-  fitPhone();
+   const f = document.querySelector('.iphone-frame');
+   if (!f) return;
+   const vv = window.visualViewport;
+   if (vv && vv.scale > 1.01) return;
+   const vh = vv ? vv.height : window.innerHeight;
+   const vw = vv ? vv.width : window.innerWidth;
+   
+   document.body.style.height = vh + 'px';
+   if (vw <= 768) {
+     f.style.setProperty('transform', 'none', 'important');
+     f.style.setProperty('width', vw + 'px', 'important');
+     f.style.setProperty('height', vh + 'px', 'important'); 
+     f.style.setProperty('padding', '0', 'important');
+     return;
+   }
+   f.style.width = ''; f.style.height = ''; f.style.padding = '';
+ }
 </script>
 
 <script>
@@ -1541,13 +1536,13 @@ function sendLineMessage() {
     }
   }
  
-  function triggerAutoType() {
+  function function triggerAutoType() {
   if (!currentLineRoom) return;
   const room = lineRooms[currentLineRoom];
 
   if (currentLineRoom === 'draft' && room.pushCompleted && !room.autoTyped) {
     room.autoTyped = true;
-    room.isTyping = true;               // 연출 중 가상 키보드 입력 차단용
+    room.isTyping = true;
     const input = document.getElementById('line-input');
     input.value = "";
 
@@ -1555,24 +1550,26 @@ function sendLineMessage() {
     const typeText = async (text) => {
       for (let i = 0; i < text.length; i++) {
         input.value += text.charAt(i);
-        await sleep(80 + Math.random() * 50);
+        // 타이핑 속도 대폭 단축
+        await sleep(30 + Math.random() * 30); 
       }
     };
     const deleteText = async (count) => {
       for (let i = 0; i < count; i++) {
         input.value = input.value.slice(0, -1);
-        await sleep(60);
+        // 지우는 속도 단축
+        await sleep(30); 
       }
     };
 
     (async () => {
-      await sleep(200);
-      await typeText("아.."); await sleep(500);
-      await deleteText(3);    await sleep(300);
-      await typeText("ㅋㅋㅋㅋ"); await sleep(400);
-      await deleteText(4);    await sleep(200);
+      await sleep(100);
+      await typeText("아.."); await sleep(200);
+      await deleteText(3);    await sleep(150);
+      await typeText("ㅋㅋㅋㅋ"); await sleep(200);
+      await deleteText(4);    await sleep(100);
       await typeText("고맙"); await sleep(100);
-      await deleteText(2);    await sleep(200);
+      await deleteText(2);    await sleep(100);
       await typeText("ㅋㅋㅋ부끄럽네ㅜ");
       room.isTyping = false;
     })();
