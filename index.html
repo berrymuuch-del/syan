@@ -722,7 +722,9 @@
       keyword: "부끄", 
       replies: [
         { name: "22넛", text: "ㅋㅋㅋㅋㅋㅋ" }, 
-        { name: "22옴", text: "푸니최애푸푸><" }
+        { name: "22옴", text: "푸니최애푸푸><" },
+        { name: "22홍", text: "꽤나부러웅디..." },
+        { name: "22산타", text: "ㅋㅋㅋㅋㅋ이와중에 부러워하는거 뭔데" }
       ] 
     }
   ];
@@ -1340,7 +1342,9 @@
           { name: "22옴", text: "너네 이거 봤어? ㅋㅋㅋㅋ" },
           { name: "22옴", text: "https://instagram.com/p/record._.17", instaLink: "instaPosts" },
           { name: "22넛", text: "탕큐 존나 잘해야겟네ㅜ" },
-          { name: "22홍", text: "헐 귀여워 나때도 해주라고 해줘" }
+          { name: "22홍", text: "헐 귀여워 나때도 해주라고 해줘" },
+          { name: "22산타", text: "ㅋㅋㅋㅋㅋㅋㅋㅋ" },
+          { name: "22산타", text: "소감한말씀듣겠습니다ㅇㄹㄱ" }
         ]);
         
         // 마지막 메시지가 도착할 즈음(3200ms 후) 22드랲(5) 방의 입력(전송) 기능 활성화
@@ -1548,19 +1552,25 @@ function renderLineQuickChips() {
       const runSequence = async () => {
         await sleep(200); // 입력창 터치 후 아주 잠깐 대기
         
-        await typeText("아 진짜"); // 1차 타이핑
+        await typeText("아.."); // 1차 타이핑 (3글자)
         await sleep(500); // 잠깐 멈칫 (고민하는 느낌)
         
-        await deleteText(2); // "진짜" 2글자 지움
+        await deleteText(3); // [수정] "아.." 3글자 지움
         await sleep(300); // 멈칫
         
-        await typeText("고맙네"); // 2차 타이핑
+        await typeText("ㅋㅋㅋㅋ"); // 2차 타이핑 (4글자)
         await sleep(400); // 다시 멈칫
         
-        await deleteText(3); // "고맙네" 3글자 지움
+        await deleteText(4); // [수정] "ㅋㅋㅋㅋ" 4글자 지움
+        await sleep(200); 
+       
+        await typeText("고맙"); // 3차 타이핑 (2글자)
+        await sleep(100); // 다시 멈칫
+       
+        await deleteText(2); // [수정] "고맙" 2글자 지움
         await sleep(200); 
         
-        await typeText("부끄럽네 ㅋㅋㅋㅋ"); // 최종 문구 타이핑
+        await typeText("ㅋㅋㅋ부끄럽네ㅜ"); // 최종 문구 타이핑
         
         input.readOnly = false; // 타이핑 완료 후 전송 가능하도록 잠금 해제
         input.focus();
