@@ -352,10 +352,10 @@
           <div id="line-messages-area" class="flex-1 overflow-y-auto px-3 py-2 space-y-2.5 no-scrollbar"></div>
           <div id="line-quick-chips" class="bg-[#8cabd9] px-2.5 py-1.5 flex items-center gap-1.5 overflow-x-auto no-scrollbar border-t border-black/5"></div>
           
-          <<div id="line-input-container" class="bg-white px-2.5 py-2 flex items-center gap-2">
+          <div id="line-input-container" class="bg-white px-2.5 py-2 flex items-center gap-2">
             <button class="w-7 h-7 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center text-lg leading-none">+</button>
-            <!-- input 대신 div를 사용하여 모바일 기본 키보드 호출 및 화면 튐 완벽 방지 -->
-            <div id="line-input" onclick="triggerAutoType()" class="flex-1 bg-gray-100 rounded-full px-3.5 py-1.5 text-[13.5px] min-h-[32px] flex items-center text-gray-400 cursor-pointer overflow-x-auto whitespace-nowrap no-scrollbar">메시지 입력</div>
+            <!-- 온클릭(onclick) 이벤트로 타이핑 연출 함수(triggerAutoType) 연결 -->
+            <input id="line-input" type="text" placeholder="메시지 입력" onclick="triggerAutoType()" onkeydown="if(event.key==='Enter') sendLineMessage()" class="flex-1 bg-gray-100 rounded-full px-3.5 py-1.5 text-[13.5px] focus:outline-none">
             <button onclick="sendLineMessage()" class="w-8 h-8 rounded-full bg-[#06C755] text-white flex items-center justify-center font-bold text-sm active:scale-90 transition">➤</button>
           </div>
           <div id="line-keyboard" class="bg-[#d1d5db] p-1.5 pt-2 text-gray-900 select-none"></div>
@@ -1268,7 +1268,6 @@
 
   function renderLineRoomList() {
     const container = document.getElementById('line-rooms-container');
-    if (!container) return;
     const order = ['draft', 'mom', 'ondi', 'nut', 'training', 'santa'];
     container.innerHTML = order.map(id => {
       const r = lineRooms[id];
@@ -1295,56 +1294,51 @@
     }).join('');
     updateLineBadges();
   }
+ function updateLineInputState() {
+    const inputContainer = document.getElementById('line-input-container');
+    const keyboard = document.getElementById('line-keyboard');
+    const inputField = document.getElementById('line-input'); 
+    const chipBar = document.getElementById('line-quick-chips');
 
-  // 입력창 텍스트 관리 함수
-  function setLineInputText(val) {
-    const el = document.getElementById('line-input');
-    if (!el) return;
-    el.dataset.val = val;
-    if (val === "") {
-      el.textContent = "메시지 입력";
-      el.classList.add('text-gray-400');
-      el.classList.remove('text-gray-900');
-    } else {
-      el.textContent = val;
-      el.classList.remove('text-gray-400');
-      el.classList.add('text-gray-900');
+    // ★ 투명도(파란창 원인)를 없애고 모든 방에서 정상 상태(100% 불투명)로 강제 고정 ★
+    if (inputContainer) {
+      inputContainer.style.pointerEvents = 'auto';
+      inputContainer.style.opacity = '1';
+    }
+    if (keyboard) {
+      keyboard.style.pointerEvents = 'auto';
+      keyboard.style.opacity = '1';
+    }
+    if (inputField) {
+      inputField.disabled = false;
+      inputField.placeholder = "메시지 입력";
+    }
+
+    if (chipBar) {
+      // 팝업 알림이 끝나고 드랲 방일 때만 칩(빠른 답장) 표시, 그 외엔 무조건 숨김
+      if (lineRooms.draft.pushCompleted && currentLineRoom === 'draft' && autoReplyRules.length > 0) {
+        chipBar.classList.remove('hidden');
+      } else {
+        chipBar.classList.add('hidden');
+      }
     }
   }
-
-  function getLineInputText() {
-    const el = document.getElementById('line-input');
-    return (el && el.dataset.val) ? el.dataset.val : "";
-  }
-
-  function updateLineInputState() {
-    const chipBar = document.getElementById('line-quick-chips');
-    if (chipBar) chipBar.classList.add('hidden');
-    setLineInputText("");
-  }
   
-  function renderLineQuickChips() {}
-  function sendQuickChip(idx) {}
-
   function openLineRoom(roomId) {
     currentLineRoom = roomId;
     const room = lineRooms[roomId];
-    if (!room) return;
     room.unread = 0;
     updateLineBadges();
+    document.getElementById('line-list-screen').classList.add('hidden');
+    document.getElementById('line-room-screen').classList.remove('hidden');
+    document.getElementById('line-room-title').textContent = room.name;
     
-    const listScreen = document.getElementById('line-list-screen');
-    const roomScreen = document.getElementById('line-room-screen');
-    const roomTitle = document.getElementById('line-room-title');
-
-    if (listScreen) listScreen.classList.add('hidden');
-    if (roomScreen) roomScreen.classList.remove('hidden');
-    if (roomTitle) roomTitle.textContent = room.name;
-    
+    // 방에 입장할 때마다 입력 상태 확인 및 갱신
     updateLineInputState(); 
     renderLineMessages();
     renderLineQuickChips();
 
+    // 넛 대화방 입장 시 22드랲(5)에 푸시 알림 트리거 및 입력창(전송버튼) 활성화 대기
     if (roomId === 'nut' && !lineRooms.draft.hasTriggeredInitialPush) {
       lineRooms.draft.hasTriggeredInitialPush = true;
       setTimeout(() => {
@@ -1357,6 +1351,7 @@
           { name: "22산타", text: "소감한말씀듣겠습니다ㅇㄹㄱ" }
         ]);
         
+        // 마지막 메시지가 도착할 즈음(3200ms 후) 22드랲(5) 방의 입력(전송) 기능 활성화
         setTimeout(() => {
           lineRooms.draft.pushCompleted = true;
           if (currentLineRoom === 'draft') {
@@ -1370,10 +1365,8 @@
 
   function closeLineRoom() {
     currentLineRoom = null;
-    const roomScreen = document.getElementById('line-room-screen');
-    const listScreen = document.getElementById('line-list-screen');
-    if (roomScreen) roomScreen.classList.add('hidden');
-    if (listScreen) listScreen.classList.remove('hidden');
+    document.getElementById('line-room-screen').classList.add('hidden');
+    document.getElementById('line-list-screen').classList.remove('hidden');
     renderLineRoomList();
   }
 
@@ -1405,7 +1398,6 @@
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
     const area = document.getElementById('line-messages-area');
-    if (!area) return;
 
     let html = '';
     room.messages.forEach(m => {
@@ -1477,34 +1469,52 @@
     area.innerHTML = html;
     area.scrollTop = area.scrollHeight;
   }
+ 
+function renderLineQuickChips() {
+    // 칩 생성 기능을 없앰 (아무것도 하지 않음)
+  }
 
-  // 가상 키보드 자판 누를 때 (언제든 입력 가능)
+  function sendQuickChip(idx) {
+    const rule = autoReplyRules[idx];
+    if (!rule) return;
+    document.getElementById('line-input').value = rule.chipSendText;
+    sendLineMessage();
+  }
+
   function appendKey(char) {
-    if (window.isAutoTyping) return;
-    setLineInputText(getLineInputText() + char);
+    // 모든 방에서 언제든 타이핑은 가능하도록 수정
+    const input = document.getElementById('line-input');
+    input.value += char;
+    input.focus();
   }
 
   function backspaceKey() {
-    if (window.isAutoTyping) return;
-    setLineInputText(getLineInputText().slice(0, -1));
+    // 모든 방에서 언제든 지우기 가능하도록 수정
+    const input = document.getElementById('line-input');
+    input.value = input.value.slice(0, -1);
+    input.focus();
   }
-
-  // 전송 버튼 누를 때 (팝업 전엔 전송만 차단)
-  function sendLineMessage() {
+ 
+function sendLineMessage() {
     if (!currentLineRoom) return;
-    if (window.isAutoTyping) return;
-    if (!lineRooms.draft.pushCompleted) return; // 팝업 전엔 전송 안 됨
+    
+    // ★ 핵심: 현재 방이 어디든 상관없이, 팝업 알림이 안 끝났으면 무조건 전송 차단! ★
+    if (!lineRooms.draft.pushCompleted) {
+      return; 
+    }
 
-    const text = getLineInputText().trim();
+    const input = document.getElementById('line-input');
+    const text = input.value.trim();
     if (!text) return;
 
     const room = lineRooms[currentLineRoom];
     const divider = ensureTodayDivider(room);
     room.messages.push({ dateDivider: divider, sender: 'me', text, time: '오전 12:16' });
     room.time = '오전 12:16';
-    setLineInputText("");
+    input.value = '';
     renderLineMessages();
 
+    // 입력 내용에 따라 추가적인 답장(리액션) 연출
     const matchedRule = autoReplyRules.find(r => text.includes(r.keyword));
     if (matchedRule) {
       runSequentialReplies(currentLineRoom, matchedRule.replies);
@@ -1515,49 +1525,63 @@
       ]);
     }
   }
-
-  // 입력창 터치 시 썼다 지웠다 자동 타이핑 연출
+ 
   function triggerAutoType() {
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
     
+    // 22드랲(draft) 방이고, 알림이 다 끝났으며, 아직 자동 타이핑을 하지 않은 경우 실행
     if (currentLineRoom === 'draft' && room.pushCompleted && !room.autoTyped) {
-      room.autoTyped = true; 
-      window.isAutoTyping = true;
-      setLineInputText(""); 
+      room.autoTyped = true; // 한 번만 실행되도록 설정
+      const input = document.getElementById('line-input');
+      input.value = ""; 
+      input.readOnly = true; // 타이핑 연출 중에는 실제 터치 방지
 
+      // 시간을 지연시키는 헬퍼 함수
       const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
       
+      // 타이핑 효과 함수 (글자마다 약간씩 다른 속도로 입력되어 리얼함 추가)
       const typeText = async (text) => {
         for (let i = 0; i < text.length; i++) {
-          setLineInputText(getLineInputText() + text.charAt(i));
+          input.value += text.charAt(i);
           await sleep(80 + Math.random() * 50); 
         }
       };
 
+      // 지우기 효과 함수
       const deleteText = async (count) => {
         for (let i = 0; i < count; i++) {
-          setLineInputText(getLineInputText().slice(0, -1));
-          await sleep(60); 
+          input.value = input.value.slice(0, -1);
+          await sleep(60); // 지우는 속도
         }
       };
 
+      // 썼다 지웠다 하는 전체 시나리오
       const runSequence = async () => {
+        await sleep(200); // 입력창 터치 후 아주 잠깐 대기
+        
+        await typeText("아.."); // 1차 타이핑 (3글자)
+        await sleep(500); // 잠깐 멈칫 (고민하는 느낌)
+        
+        await deleteText(3); // [수정] "아.." 3글자 지움
+        await sleep(300); // 멈칫
+        
+        await typeText("ㅋㅋㅋㅋ"); // 2차 타이핑 (4글자)
+        await sleep(400); // 다시 멈칫
+        
+        await deleteText(4); // [수정] "ㅋㅋㅋㅋ" 4글자 지움
         await sleep(200); 
-        await typeText("아.."); 
-        await sleep(500); 
-        await deleteText(3); 
-        await sleep(300); 
-        await typeText("ㅋㅋㅋㅋ"); 
-        await sleep(400); 
-        await deleteText(4); 
+       
+        await typeText("고맙"); // 3차 타이핑 (2글자)
+        await sleep(100); // 다시 멈칫
+       
+        await deleteText(2); // [수정] "고맙" 2글자 지움
         await sleep(200); 
-        await typeText("고맙"); 
-        await sleep(100); 
-        await deleteText(2); 
-        await sleep(200); 
-        await typeText("ㅋㅋㅋ부끄럽네ㅜ"); 
-        window.isAutoTyping = false;
+        
+        await typeText("ㅋㅋㅋ부끄럽네ㅜ"); // 최종 문구 타이핑
+        
+        input.readOnly = false; // 타이핑 완료 후 전송 가능하도록 잠금 해제
+        input.focus();
       };
 
       runSequence();
