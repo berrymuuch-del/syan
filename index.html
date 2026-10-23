@@ -1296,27 +1296,18 @@
   }
 
  function updateLineInputState() {
-    const inputContainer = document.getElementById('line-input-container');
-    const keyboard = document.getElementById('line-keyboard');
+    const chipBar = document.getElementById('line-quick-chips');
     const inputField = document.getElementById('line-input'); 
 
-    // 칩(빠른 답장 버튼) 영역은 무조건 숨김
-    document.getElementById('line-quick-chips').classList.add('hidden');
+    // 1. 모든 방 공통: 시각적 잠금(회색막) 없이 타이핑 가능하게 세팅
+    inputField.placeholder = "메시지 입력"; 
 
-    if (currentLineRoom === 'draft' && !lineRooms.draft.pushCompleted) {
-      inputContainer.style.pointerEvents = 'none';
-      inputContainer.style.opacity = '0.5';
-      inputField.disabled = true; 
-      inputField.placeholder = "지금은 답장할 수 없습니다.";
-      keyboard.style.pointerEvents = 'none';
-      keyboard.style.opacity = '0.5';
-    } else {
-      inputContainer.style.pointerEvents = 'auto';
-      inputContainer.style.opacity = '1';
-      inputField.disabled = false; 
-      inputField.placeholder = "메시지 입력";
-      keyboard.style.pointerEvents = 'auto';
-      keyboard.style.opacity = '1';
+    // 2. 일단 칩(빠른 답장)은 무조건 숨김 처리
+    if (chipBar) chipBar.classList.add('hidden');
+
+    // 3. 알림 이벤트가 완전히 끝났고 && 현재 방이 '드랲 방'일 때만 칩 다시 표시
+    if (lineRooms.draft.pushCompleted && currentLineRoom === 'draft' && autoReplyRules.length > 0) {
+      if (chipBar) chipBar.classList.remove('hidden');
     }
   }
   
@@ -1477,14 +1468,15 @@ function renderLineQuickChips() {
     sendLineMessage();
   }
 
-  // 타이핑 자체는 허용
   function appendKey(char) {
+    // 모든 방에서 언제든 타이핑은 가능하도록 수정
     const input = document.getElementById('line-input');
     input.value += char;
     input.focus();
   }
 
   function backspaceKey() {
+    // 모든 방에서 언제든 지우기 가능하도록 수정
     const input = document.getElementById('line-input');
     input.value = input.value.slice(0, -1);
     input.focus();
