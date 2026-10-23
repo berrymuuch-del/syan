@@ -1493,16 +1493,34 @@ function renderLineQuickChips() {
     sendLineMessage();
   }
 
-  function appendKey(char) {
-   if (lineRooms.draft.isTyping) return;
-  const input = document.getElementById('line-input');
-  input.value += char;
-}
+ function appendKey(char) {
+    if (!currentLineRoom) return;
+    const room = lineRooms[currentLineRoom];
+    
+    // 자동 타이핑 조건 충족 시, 일반 키 입력을 무시하고 자동 타이핑 실행
+    if (currentLineRoom === 'draft' && room.pushCompleted && !room.autoTyped) {
+      triggerAutoType();
+      return;
+    }
+    
+    if (room.isTyping) return;
+    const input = document.getElementById('line-input');
+    input.value += char;
+  }
 
-function backspaceKey() {
- if (lineRooms.draft.isTyping) return;
-  const input = document.getElementById('line-input');
-  input.value = input.value.slice(0, -1);
+  function backspaceKey() {
+    if (!currentLineRoom) return;
+    const room = lineRooms[currentLineRoom];
+    
+    if (currentLineRoom === 'draft' && room.pushCompleted && !room.autoTyped) {
+      triggerAutoType();
+      return;
+    }
+    
+    if (room.isTyping) return;
+    const input = document.getElementById('line-input');
+    input.value = input.value.slice(0, -1);
+  }
 }
  
 function sendLineMessage() {
@@ -1536,45 +1554,45 @@ function sendLineMessage() {
     }
   }
  
-  function function triggerAutoType() {
-  if (!currentLineRoom) return;
-  const room = lineRooms[currentLineRoom];
+  function triggerAutoType() {
+    if (!currentLineRoom) return;
+    const room = lineRooms[currentLineRoom];
 
-  if (currentLineRoom === 'draft' && room.pushCompleted && !room.autoTyped) {
-    room.autoTyped = true;
-    room.isTyping = true;
-    const input = document.getElementById('line-input');
-    input.value = "";
+    if (currentLineRoom === 'draft' && room.pushCompleted && !room.autoTyped) {
+      room.autoTyped = true;
+      room.isTyping = true; // 연출 중 가상 키보드 입력 차단
+      const input = document.getElementById('line-input');
+      input.value = "";
 
-    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-    const typeText = async (text) => {
-      for (let i = 0; i < text.length; i++) {
-        input.value += text.charAt(i);
-        // 타이핑 속도 대폭 단축
-        await sleep(30 + Math.random() * 30); 
-      }
-    };
-    const deleteText = async (count) => {
-      for (let i = 0; i < count; i++) {
-        input.value = input.value.slice(0, -1);
-        // 지우는 속도 단축
-        await sleep(30); 
-      }
-    };
+      const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+      const typeText = async (text) => {
+        for (let i = 0; i < text.length; i++) {
+          input.value += text.charAt(i);
+          // 실제 사람이 모바일에서 치는 듯한 속도 (70ms ~ 130ms)
+          await sleep(70 + Math.random() * 60);
+        }
+      };
+      const deleteText = async (count) => {
+        for (let i = 0; i < count; i++) {
+          input.value = input.value.slice(0, -1);
+          // 백스페이스로 지우는 속도 (50ms)
+          await sleep(50);
+        }
+      };
 
-    (async () => {
-      await sleep(100);
-      await typeText("아.."); await sleep(200);
-      await deleteText(3);    await sleep(150);
-      await typeText("ㅋㅋㅋㅋ"); await sleep(200);
-      await deleteText(4);    await sleep(100);
-      await typeText("고맙"); await sleep(100);
-      await deleteText(2);    await sleep(100);
-      await typeText("ㅋㅋㅋ부끄럽네ㅜ");
-      room.isTyping = false;
-    })();
+      (async () => {
+        await sleep(150); // 터치 직후 아주 짧은 대기
+        await typeText("아.."); await sleep(400); // 쓰고 나서 멈칫하는 시간
+        await deleteText(3);    await sleep(200);
+        await typeText("ㅋㅋㅋㅋ"); await sleep(350);
+        await deleteText(4);    await sleep(150);
+        await typeText("고맙"); await sleep(200);
+        await deleteText(2);    await sleep(200);
+        await typeText("ㅋㅋㅋ부끄럽네ㅜ");
+        room.isTyping = false; // 타이핑 종료 후 입력 차단 해제
+      })();
+    }
   }
-}
 
   function runSequentialReplies(roomId, repliesArray) {
     const room = lineRooms[roomId];
