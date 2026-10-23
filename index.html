@@ -716,12 +716,10 @@
   let isMusicPlaying = false;
   let callTimers = [];
 
-  // 22드랲 채팅방이 활성화된 후 보낼 수 있는 빠른 답장 칩 기능 설정
+  // 22드랲 채팅방 알림 완료 후 자동 답장(리액션) 규칙
   const autoReplyRules = [
     { 
       keyword: "부끄", 
-      chipLabel: "아 부끄럽네", 
-      chipSendText: "아 부끄럽네 ㅋㅋㅋㅋ", 
       replies: [
         { name: "22넛", text: "ㅋㅋㅋㅋㅋㅋ" }, 
         { name: "22옴", text: "푸니최애푸푸><" }
@@ -1295,16 +1293,28 @@
     updateLineBadges();
   }
 
-  function updateLineInputState() {
-    const chipBar = document.getElementById('line-quick-chips');
+ function updateLineInputState() {
+    const inputContainer = document.getElementById('line-input-container');
+    const keyboard = document.getElementById('line-keyboard');
+    const inputField = document.getElementById('line-input'); 
+
+    // 칩(빠른 답장 버튼) 영역은 무조건 숨김
+    document.getElementById('line-quick-chips').classList.add('hidden');
 
     if (currentLineRoom === 'draft' && !lineRooms.draft.pushCompleted) {
-      // 알림이 끝날 때까지 칩만 숨겨둠 (회색 처리 모두 제거)
-      chipBar.classList.add('hidden');
+      inputContainer.style.pointerEvents = 'none';
+      inputContainer.style.opacity = '0.5';
+      inputField.disabled = true; 
+      inputField.placeholder = "지금은 답장할 수 없습니다.";
+      keyboard.style.pointerEvents = 'none';
+      keyboard.style.opacity = '0.5';
     } else {
-      if (currentLineRoom === 'draft' && autoReplyRules.length > 0) {
-          chipBar.classList.remove('hidden');
-      }
+      inputContainer.style.pointerEvents = 'auto';
+      inputContainer.style.opacity = '1';
+      inputField.disabled = false; 
+      inputField.placeholder = "메시지 입력";
+      keyboard.style.pointerEvents = 'auto';
+      keyboard.style.opacity = '1';
     }
   }
   
@@ -1451,18 +1461,9 @@
     area.innerHTML = html;
     area.scrollTop = area.scrollHeight;
   }
-
-  function renderLineQuickChips() {
-    const chipBar = document.getElementById('line-quick-chips');
-    // 알림 푸시가 완료되기 전이면 칩도 가려줍니다
-    if (currentLineRoom !== 'draft' || autoReplyRules.length === 0 || !lineRooms.draft.pushCompleted) {
-      chipBar.classList.add('hidden');
-      return;
-    }
-    chipBar.classList.remove('hidden');
-    chipBar.innerHTML = autoReplyRules.map((r, i) => `
-      <button onclick="sendQuickChip(${i})" class="bg-white/90 hover:bg-white text-gray-800 text-[11.5px] font-medium px-2.5 py-1 rounded-full whitespace-nowrap shadow-sm active:scale-95 transition">💬 ${r.chipLabel}</button>
-    `).join('');
+ 
+function renderLineQuickChips() {
+    // 칩 생성 기능을 없앰 (아무것도 하지 않음)
   }
 
   function sendQuickChip(idx) {
