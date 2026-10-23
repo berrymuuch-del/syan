@@ -57,7 +57,7 @@
   .ig-play { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; transition: opacity 0.2s; }
   .ig-play span { width: 56px; height: 56px; border-radius: 50%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; }
   .ig-slide.playing .ig-play { opacity: 0; }
-  .ig-mute { position: absolute bottom: 10px; right: 10px; width: 28px; height: 28px; border-radius: 50%; background: rgba(0,0,0,0.65); color: #fff; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+  .ig-mute { position: absolute; bottom: 10px; right: 10px; width: 28px; height: 28px; border-radius: 50%; background: rgba(0,0,0,0.65); color: #fff; font-size: 13px; display: flex; align-items: center; justify-content: center; }
   .ig-vtag { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.55); color: #fff; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 6px; pointer-events: none; }
 
   .chk-row { display: flex; align-items: flex-start; gap: 14px; padding: 9px 0; cursor: pointer; }
@@ -89,7 +89,7 @@
 </head>
 <body>
 
-  <!-- [추가됨] 실제 음악을 재생하기 위한 숨겨진 오디오 태그 -->
+  <!-- 실제 음악을 재생하기 위한 숨겨진 오디오 태그 -->
   <audio id="audio-player" class="hidden"></audio>
 
   <div class="iphone-frame">
@@ -109,7 +109,6 @@
             <div class="w-2.5 h-2.5 rounded-full bg-[#111827] border border-[#1f2937]"></div>
           </div>
           <div id="island-music" class="hidden w-full flex items-center justify-between">
-            <!-- [다이나믹 아일랜드 앨범 커버 변경 위치] JS에서 id="island-music-cover"를 찾아 자동으로 src를 교체합니다 -->
             <img id="island-music-cover" src="https://blog.kakaocdn.net/dna/btLr2X/dJMcag8q0tN/AAAAAAAAAAAAAAAAAAAAAEXl-3OhLPkcHRMyIxVgnUBZFWmAgX59T0_u6L8C8o86/img.jpg?credential=yqXZFxpELC7KVnFOS48ylbz2pIh7yKj8&expires=1793458799&allow_ip=&allow_referer=&signature=E17XBfSQaP0eTgTf9wqNGHNtXA4%3D" class="w-5 h-5 rounded-full object-cover" alt="album">
             <div class="flex items-end gap-[2px] h-3.5 pr-1">
               <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
@@ -352,7 +351,7 @@
           </div>
           <div id="line-messages-area" class="flex-1 overflow-y-auto px-3 py-2 space-y-2.5 no-scrollbar"></div>
           <div id="line-quick-chips" class="bg-[#8cabd9] px-2.5 py-1.5 flex items-center gap-1.5 overflow-x-auto no-scrollbar border-t border-black/5"></div>
-          <!-- ID line-input-container 추가 -->
+          
           <div id="line-input-container" class="bg-white px-2.5 py-2 flex items-center gap-2">
             <button class="w-7 h-7 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center text-lg leading-none">+</button>
             <input id="line-input" type="text" placeholder="메시지 입력" onkeydown="if(event.key==='Enter') sendLineMessage()" class="flex-1 bg-gray-100 rounded-full px-3.5 py-1.5 text-[13.5px] focus:outline-none">
@@ -716,7 +715,7 @@
   let isMusicPlaying = false;
   let callTimers = [];
 
-  // [추가됨] 22드랲 채팅방이 활성화된 후 보낼 수 있는 빠른 답장 칩 기능 설정
+  // 22드랲 채팅방이 활성화된 후 보낼 수 있는 빠른 답장 칩 기능 설정
   const autoReplyRules = [
     { keyword: "부끄", chipLabel: "아 부끄럽네", chipSendText: "아 부끄럽네 ㅋㅋㅋㅋ", replies: ["ㅋㅋㅋㅋㅋㅋ", "잘하자 푸윈아"] },
     { keyword: "고맙", chipLabel: "고맙다 다들", chipSendText: "고맙다 다들 ㅋㅋㅋ", replies: ["내일 밥이나 사", "ㅇㅋㅇㅋ"] }
@@ -837,7 +836,7 @@
         { sender: "them", name: "22넛", text: "ㅋㅋㅋㅋ냅다 재우네", time: "오후 11:10" }
       ],
       hasTriggeredInitialPush: false,
-      pushCompleted: false // [추가됨] 알림 푸시가 다 끝나고 입력창이 열렸는지 체크
+      pushCompleted: false
     },
     mom: {
       id: "mom", name: "엄마", avatar: "", unread: 0, time: "어제",
@@ -1288,28 +1287,14 @@
     updateLineBadges();
   }
 
-  // [추가/수정됨] 알림 수신 상태에 따라 입력창을 활성화/비활성화 처리하는 함수
+  // [수정됨] 회색 비활성화 효과 모두 제거, 겉모습은 그대로 유지하고 알림 오기 전엔 칩만 숨김
   function updateLineInputState() {
-    const inputContainer = document.getElementById('line-input-container');
-    const keyboard = document.getElementById('line-keyboard');
     const chipBar = document.getElementById('line-quick-chips');
-    const inputField = document.getElementById('line-input'); // 텍스트 입력창 요소
 
     if (currentLineRoom === 'draft' && !lineRooms.draft.pushCompleted) {
-      inputContainer.style.pointerEvents = 'none';
-      inputContainer.style.opacity = '0.5';
-      inputField.disabled = true; // [수정] 입력창 자체를 비활성화 잠금
-      inputField.placeholder = "지금은 답장할 수 없습니다.";
-      keyboard.style.pointerEvents = 'none';
-      keyboard.style.opacity = '0.5';
+      // 알림이 끝날 때까지 칩 숨김
       chipBar.classList.add('hidden');
     } else {
-      inputContainer.style.pointerEvents = 'auto';
-      inputContainer.style.opacity = '1';
-      inputField.disabled = false; // [수정] 입력창 잠금 해제
-      inputField.placeholder = "메시지 입력";
-      keyboard.style.pointerEvents = 'auto';
-      keyboard.style.opacity = '1';
       if (currentLineRoom === 'draft' && autoReplyRules.length > 0) {
           chipBar.classList.remove('hidden');
       }
@@ -1330,7 +1315,7 @@
     renderLineMessages();
     renderLineQuickChips();
 
-    // 넛 대화방 입장 시 22드랲(5)에 푸시 알림 트리거 및 입력창 활성화 대기
+    // 넛 대화방 입장 시 22드랲(5)에 푸시 알림 트리거 및 입력창(전송버튼) 활성화 대기
     if (roomId === 'nut' && !lineRooms.draft.hasTriggeredInitialPush) {
       lineRooms.draft.hasTriggeredInitialPush = true;
       setTimeout(() => {
@@ -1341,7 +1326,7 @@
           { name: "22홍", text: "헐 귀여워 나때도 해주라고 해줘" }
         ]);
         
-        // 마지막 메시지가 도착할 즈음(3200ms 후) 22드랲(5) 방의 입력 기능 활성화
+        // 마지막 메시지가 도착할 즈음(3200ms 후) 22드랲(5) 방의 입력(전송) 기능 활성화
         setTimeout(() => {
           lineRooms.draft.pushCompleted = true;
           if (currentLineRoom === 'draft') {
@@ -1480,15 +1465,14 @@
     sendLineMessage();
   }
 
+  // [수정됨] 타이핑 자체는 허용
   function appendKey(char) {
-    if (currentLineRoom === 'draft' && !lineRooms.draft.pushCompleted) return; // [수정] 방어 로직
     const input = document.getElementById('line-input');
     input.value += char;
     input.focus();
   }
 
   function backspaceKey() {
-    if (currentLineRoom === 'draft' && !lineRooms.draft.pushCompleted) return; // [수정] 방어 로직
     const input = document.getElementById('line-input');
     input.value = input.value.slice(0, -1);
     input.focus();
@@ -1496,7 +1480,7 @@
 
   function sendLineMessage() {
     if (!currentLineRoom) return;
-    // [수정] 조건 불충족 시 엔터키, 전송버튼 강제 호출 무시 방어 로직
+    // [핵심] 푸시 알림 완료 전까지는 엔터/전송 버튼을 눌러도 메시지가 전송되지 않고 무시됨
     if (currentLineRoom === 'draft' && !lineRooms.draft.pushCompleted) return; 
 
     const input = document.getElementById('line-input');
