@@ -2,16 +2,21 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>iPhone 16 인터랙티브 시뮬레이터</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
 <style>
   * { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; user-select: none; -webkit-user-select: none; box-sizing: border-box; }
-  body { background: radial-gradient(circle at center, #1e293b 0%, #090d16 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; padding: 16px; color: #fff; overflow: hidden; }
-  .iphone-frame { width: 390px; height: 830px; background: #000; border-radius: 56px; padding: 12px; box-shadow: 0 0 0 2px #334155, 0 0 0 5px #1e293b, 0 25px 60px -10px rgba(0,0,0,0.85); position: relative; flex-shrink: 0; }
+  body { background: radial-gradient(circle at center, #1e293b 0%, #090d16 100%); position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100dvh; margin: 0; padding: 0; color: #fff; overflow: hidden; }
+  .iphone-frame { width: 390px; height: 830px; background: #000; border-radius: 56px; padding: 12px; box-shadow: 0 0 0 2px #334155, 0 0 0 5px #1e293b, 0 25px 60px -10px rgba(0,0,0,0.85); position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
   .iphone-screen { width: 100%; height: 100%; background: #000; border-radius: 45px; position: relative; overflow: hidden; display: flex; flex-direction: column; }
   
+  /* [모바일 대응] 사파리 주소창/하단바에 dock이 가려지지 않도록 실제 보이는 화면(dvh)에 맞춤 */
+  html { height: 100%; }
+  .iphone-frame { transform-origin: center center; }
+  #view-home { padding-bottom: 1.5rem; }
+
   /* [잠금화면 & 홈 배경화면 변경 위치] url('') 안에 이미지 주소를 넣으세요 */
   .star-wallpaper {
     background-color: #09060f;
@@ -672,6 +677,33 @@
 
     </div>
   </div>
+
+<script>
+  // 폰 프레임(390x830) 비율을 그대로 유지하면서, 사파리 주소창/하단바를 뺀 '실제 보이는 영역'에 맞춰 전체를 축소
+  function fitPhone() {
+    const f = document.querySelector('.iphone-frame');
+    if (!f) return;
+    const vv = window.visualViewport;
+    // 핀치 줌 중에는 건드리지 않음
+    if (vv && vv.scale > 1.01) return;
+    const vh = vv ? vv.height : window.innerHeight;
+    const vw = vv ? vv.width : window.innerWidth;
+    // body를 실제 보이는 높이에 맞춤 (사파리의 100vh 버그 방지)
+    document.body.style.height = vh + 'px';
+    const margin = 12; // 화면 가장자리 여백
+    const scale = Math.min(1, (vh - margin * 2) / 830, (vw - margin * 2) / 390);
+    f.style.transform = 'translate(-50%, -50%) scale(' + scale + ')';
+  }
+  window.addEventListener('resize', fitPhone);
+  window.addEventListener('orientationchange', () => setTimeout(fitPhone, 200));
+  window.addEventListener('pageshow', fitPhone);
+  window.addEventListener('scroll', fitPhone, { passive: true });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', fitPhone);
+    window.visualViewport.addEventListener('scroll', fitPhone);
+  }
+  fitPhone();
+</script>
 
 <script>
   // ================= DATA & STATE =================
