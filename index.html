@@ -1268,6 +1268,7 @@
 
   function renderLineRoomList() {
     const container = document.getElementById('line-rooms-container');
+    if (!container) return;
     const order = ['draft', 'mom', 'ondi', 'nut', 'training', 'santa'];
     container.innerHTML = order.map(id => {
       const r = lineRooms[id];
@@ -1294,8 +1295,8 @@
     }).join('');
     updateLineBadges();
   }
- 
- // 입력창에 글씨를 쓰거나 지울 때 화면에 표시해 주는 전용 함수
+
+  // 입력창 텍스트 관리 함수
   function setLineInputText(val) {
     const el = document.getElementById('line-input');
     if (!el) return;
@@ -1318,35 +1319,181 @@
 
   function updateLineInputState() {
     const chipBar = document.getElementById('line-quick-chips');
-    if (chipBar) chipBar.classList.add('hidden'); // 칩 무조건 숨김
-    setLineInputText(""); // 방 바뀔 때마다 입력창 깔끔하게 초기화
+    if (chipBar) chipBar.classList.add('hidden');
+    setLineInputText("");
   }
   
-  function renderLineQuickChips() {
-    // 칩 생성 안 함
-  }
-
+  function renderLineQuickChips() {}
   function sendQuickChip(idx) {}
 
-  // 가상 키보드 자판 누를 때 (언제든 정상 작동)
+  function openLineRoom(roomId) {
+    currentLineRoom = roomId;
+    const room = lineRooms[roomId];
+    if (!room) return;
+    room.unread = 0;
+    updateLineBadges();
+    
+    const listScreen = document.getElementById('line-list-screen');
+    const roomScreen = document.getElementById('line-room-screen');
+    const roomTitle = document.getElementById('line-room-title');
+
+    if (listScreen) listScreen.classList.add('hidden');
+    if (roomScreen) roomScreen.classList.remove('hidden');
+    if (roomTitle) roomTitle.textContent = room.name;
+    
+    updateLineInputState(); 
+    renderLineMessages();
+    renderLineQuickChips();
+
+    if (roomId === 'nut' && !lineRooms.draft.hasTriggeredInitialPush) {
+      lineRooms.draft.hasTriggeredInitialPush = true;
+      setTimeout(() => {
+        pushIncomingLine('draft', [
+          { name: "22옴", text: "너네 이거 봤어? ㅋㅋㅋㅋ" },
+          { name: "22옴", text: "https://instagram.com/p/record._.17", instaLink: "instaPosts" },
+          { name: "22넛", text: "탕큐 존나 잘해야겟네ㅜ" },
+          { name: "22홍", text: "헐 귀여워 나때도 해주라고 해줘" },
+          { name: "22산타", text: "ㅋㅋㅋㅋㅋㅋㅋㅋ" },
+          { name: "22산타", text: "소감한말씀듣겠습니다ㅇㄹㄱ" }
+        ]);
+        
+        setTimeout(() => {
+          lineRooms.draft.pushCompleted = true;
+          if (currentLineRoom === 'draft') {
+            updateLineInputState();
+            renderLineQuickChips();
+          }
+        }, 3200);
+      }, 1500);
+    }
+  }
+
+  function closeLineRoom() {
+    currentLineRoom = null;
+    const roomScreen = document.getElementById('line-room-screen');
+    const listScreen = document.getElementById('line-list-screen');
+    if (roomScreen) roomScreen.classList.add('hidden');
+    if (listScreen) listScreen.classList.remove('hidden');
+    renderLineRoomList();
+  }
+
+  function ensureTodayDivider(room) {
+    const todayStr = "2026년 9월 20일 (일)";
+    const hasToday = room.messages.some(m => m.dateDivider === todayStr);
+    return hasToday ? undefined : todayStr;
+  }
+
+  function goToInstaFromLine(target) {
+    openApp('insta');
+    if (target === 'profile' || target === 'reel') {
+      showInstaProfile();
+    } else {
+      showInstaFeed();
+      const postIdx = parseInt(target, 10);
+      if (!isNaN(postIdx)) {
+        setTimeout(() => {
+          const posts = document.querySelectorAll('#insta-posts > article');
+          if (posts[postIdx]) {
+            posts[postIdx].scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 120);
+      }
+    }
+  }
+
+  function renderLineMessages() {
+    if (!currentLineRoom) return;
+    const room = lineRooms[currentLineRoom];
+    const area = document.getElementById('line-messages-area');
+    if (!area) return;
+
+    let html = '';
+    room.messages.forEach(m => {
+      if (m.dateDivider) {
+        html += `<div class="text-center my-2.5"><span class="bg-black/20 text-white text-[11px] px-3 py-1 rounded-full">${m.dateDivider}</span></div>`;
+      }
+
+      let avatarSrc = m.avatar;
+      if (!avatarSrc) {
+        if (room.members && m.name) {
+          avatarSrc = room.members[m.name] || null;
+        } else {
+          avatarSrc = room.avatar;
+        }
+      }
+
+      const avatar = avatarSrc
+        ? `<img src="${avatarSrc}" class="w-8 h-8 rounded-full object-cover flex-shrink-0" alt="av">`
+        : `<div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs flex-shrink-0">👤</div>`;
+
+      const imgHtml = m.image
+        ? `<img src="${m.image}" onclick="openPhotoModal(this.src)" class="rounded-xl max-w-[190px] max-h-[230px] object-cover cursor-pointer shadow-sm ${m.text ? 'mb-1.5' : ''}" alt="chat-img">`
+        : '';
+
+      const textHtml = m.text
+        ? (m.instaLink !== undefined
+            ? `<span onclick="goToInstaFromLine('${m.instaLink}')" class="text-blue-600 underline cursor-pointer font-semibold break-all">${m.text}</span>`
+            : `<span>${m.text}</span>`)
+        : '';
+
+      const meBubbleCls = (m.image && !m.text)
+        ? ''
+        : 'bg-[#85e249] text-gray-900 px-3 py-1.5 rounded-2xl rounded-tr-sm text-[13.5px] shadow-sm break-words whitespace-pre-line';
+      const themBubbleCls = (m.image && !m.text)
+        ? ''
+        : 'bg-white text-gray-900 px-3 py-1.5 rounded-2xl rounded-tl-sm text-[13.5px] shadow-sm break-words whitespace-pre-line';
+
+      if (m.sender === 'me') {
+        html += `
+          <div class="flex items-end justify-end gap-1">
+            <div class="text-right text-[9.5px] text-white/90 leading-tight"><p>읽음</p><p>${m.time}</p></div>
+            <div class="max-w-[72%] ${meBubbleCls}">${imgHtml}${textHtml}</div>
+          </div>`;
+      } else if (m.sender === 'typing') {
+        html += `
+          <div class="flex items-start gap-2">
+            ${avatar}
+            <div>
+              <p class="text-[11px] text-white/90 mb-0.5">${m.name || room.name}</p>
+              <div class="bg-white px-3.5 py-2 rounded-2xl rounded-tl-sm shadow-sm inline-flex items-center gap-1">
+                <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
+              </div>
+            </div>
+          </div>`;
+      } else {
+        html += `
+          <div class="flex items-start gap-2">
+            ${avatar}
+            <div class="max-w-[75%]">
+              <p class="text-[11px] text-white/90 mb-0.5">${m.name || room.name}</p>
+              <div class="flex items-end gap-1">
+                <div class="${themBubbleCls}">${imgHtml}${textHtml}</div>
+                <span class="text-[9.5px] text-white/90 flex-shrink-0">${m.time}</span>
+              </div>
+            </div>
+          </div>`;
+      }
+    });
+    area.innerHTML = html;
+    area.scrollTop = area.scrollHeight;
+  }
+
+  // 가상 키보드 자판 누를 때 (언제든 입력 가능)
   function appendKey(char) {
-    if ( window.isAutoTyping ) return; // 자동 타이핑 연출 중에만 수동 입력 방지
+    if (window.isAutoTyping) return;
     setLineInputText(getLineInputText() + char);
   }
 
-  // 가상 키보드 지우기 누를 때 (언제든 정상 작동)
   function backspaceKey() {
-    if ( window.isAutoTyping ) return;
+    if (window.isAutoTyping) return;
     setLineInputText(getLineInputText().slice(0, -1));
   }
 
-  // 전송 버튼 누를 때
+  // 전송 버튼 누를 때 (팝업 전엔 전송만 차단)
   function sendLineMessage() {
     if (!currentLineRoom) return;
     if (window.isAutoTyping) return;
-    
-    // ★ 팝업 알림이 끝나기 전까지는 어떤 방에서든 전송 버튼만 막음 ★
-    if (!lineRooms.draft.pushCompleted) return; 
+    if (!lineRooms.draft.pushCompleted) return; // 팝업 전엔 전송 안 됨
 
     const text = getLineInputText().trim();
     if (!text) return;
@@ -1355,10 +1502,9 @@
     const divider = ensureTodayDivider(room);
     room.messages.push({ dateDivider: divider, sender: 'me', text, time: '오전 12:16' });
     room.time = '오전 12:16';
-    setLineInputText(""); // 전송 후 입력창 비우기
+    setLineInputText("");
     renderLineMessages();
 
-    // 입력 내용에 따라 추가적인 답장(리액션) 연출
     const matchedRule = autoReplyRules.find(r => text.includes(r.keyword));
     if (matchedRule) {
       runSequentialReplies(currentLineRoom, matchedRule.replies);
