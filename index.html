@@ -1303,6 +1303,7 @@
   // ================= LINE =================
 
   // 🔥 [추가 완료] 자동 컷신 시퀀스 
+  // 🔥 [수정완료] 자동 컷신 시퀀스 시간 3초씩 지연
   window.runAutoInstaSequence = function() {
     const room = lineRooms.draft;
     if (room.visitedInsta) return;
@@ -1313,12 +1314,16 @@
     const targetLink = links.find(el => el.textContent.includes('instagram.com'));
 
     if (targetLink) {
-      targetLink.style.transition = 'all 0.15s ease';
-      targetLink.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
-      targetLink.style.borderRadius = '4px';
-      setTimeout(() => { targetLink.style.backgroundColor = 'transparent'; }, 200);
+      // 1. 링크 클릭 효과를 3초(3000ms) 뒤에 실행하여 대화 읽을 시간 확보
+      setTimeout(() => {
+        targetLink.style.transition = 'all 0.15s ease';
+        targetLink.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
+        targetLink.style.borderRadius = '4px';
+        setTimeout(() => { targetLink.style.backgroundColor = 'transparent'; }, 200);
+      }, 3000); 
     }
 
+    // 2. 인스타 앱으로 전환되는 시간을 3.4초(3400ms) 뒤로 늦춤 (기존 0.4초)
     setTimeout(() => {
       openApp('insta');
       showInstaFeed(); 
@@ -1335,6 +1340,7 @@
         }
       }, 150);
 
+      // 3. 인스타 영상을 시청하고 라인으로 복귀하는 시간을 7.5초(7500ms)로 늦춤 (기존 4.5초)
       setTimeout(() => {
         document.querySelectorAll('#app-insta video').forEach(v => {
           v.pause();
@@ -1343,12 +1349,11 @@
         });
         openApp('line');
         openLineRoom('draft'); 
-      }, 4500); 
+      }, 7500); 
 
-    }, 400);
+    }, 3400); 
   };
-
-
+ 
   function updateLineBadges() {
     const total = Object.values(lineRooms).reduce((sum, r) => sum + (r.unread || 0), 0);
     const homeBadge = document.getElementById('badge-line');
@@ -1495,6 +1500,7 @@
   }
 
 
+  // 🔥 [수정완료] 렌더링 지연시간을 추가하여 맨 아래로 확실하게 자동 스크롤되도록 수정
   function renderLineMessages() {
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
@@ -1568,7 +1574,13 @@
       }
     });
     area.innerHTML = html;
-    area.scrollTop = area.scrollHeight;
+    
+    // 화면이 그려질 시간(0.1초)을 아주 잠깐 준 뒤 스크롤을 제일 아래로 내려줌
+    setTimeout(() => {
+      if(area) {
+        area.scrollTop = area.scrollHeight;
+      }
+    }, 100);
   }
  
   function renderLineQuickChips() {
@@ -1637,24 +1649,29 @@
     if (!text) return;
 
     const divider = ensureTodayDivider(room);
-    room.messages.push({ dateDivider: divider, sender: 'me', text, time: '오전 12:16' });
-    room.time = '오전 12:16';
+    room.messages.push({ dateDivider: divider, sender: 'me', text, time: '오전 12:18' });
+    room.time = '오전 12:18';
     input.value = '';
     renderLineMessages();
 
     if (currentLineRoom === 'draft' && room.autoTypeStep === 1 && !room.repliesFinished) {
       runSequentialReplies('draft', [
-        { name: "22옴", text: "부끄러워하긴 ㅋㅋㅋㅋ" }, 
-        { name: "22산타", text: "내일 경기장 가자마자 놀려야지" },
-        { name: "22넛", text: "ㅇㅈ" }
+        { name: "22넛", text: "더 잘하셔야겠다" }, 
+        { name: "22옴", text: "ㅇㅈㅇㅈ" },
+        { name: "22산타", text: "아자아자ㅏㅏㅏ" }
       ]);
       
       setTimeout(() => { room.repliesFinished = true; }, 4500); 
     } 
     else if (currentLineRoom === 'draft' && room.autoTypeStep === 2) {
       runSequentialReplies('draft', [
-        { name: "22옴", text: "다들 화이팅하자고~~~~" },
-        { name: "22홍", text: "가자아아!!!" }
+        { name: "22옴", text: "ㅋㅋㅋㅋ근데 누굴까?" },
+        { name: "22홍", text: "뭐가?" },
+        { name: "22옴", text: "푸니 안에 있는 분" },
+        { name: "22넛", text: "직원분이시겠지" }, 
+        { name: "22옴", text: "아ㅡㅡ 그걸 모르겠냐고" },
+        { name: "22산타", text: "그러게 그러고보니 본 적 없긴 하다" },
+        { name: "22홍", text: "오 갑자기 궁금하긴하다 누굴까" }
       ]);
       room.autoTypeStep = 3; 
     }
@@ -1708,7 +1725,7 @@
         input.value = "";
         (async () => {
           await sleep(150);
-          await typeText("다들 내일 화이팅합시다ㅏㅏ"); 
+          await typeText("ㅋ쿠ㅜ분발하겠습니다 이놈들아"); 
           
           room.autoTypeStep = 2; 
           room.isTyping = false;
