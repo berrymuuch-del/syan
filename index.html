@@ -347,13 +347,13 @@
 
       <!-- LINE -->
       <div id="app-line" class="app-view app-hidden bg-white text-gray-900">
-        <div id="line-list-screen" class="flex-1 flex flex-col overflow-hidden">
-          <div class="px-5 pt-2 pb-3 flex items-center justify-between">
+        <div id="line-list-screen" class="w-full h-full flex flex-col overflow-hidden">
+          <div class="px-5 pt-2 pb-3 flex items-center justify-between flex-shrink-0">
             <h1 class="text-[22px] font-bold">대화</h1>
             <div class="flex items-center gap-4 text-[18px] text-gray-700"><span>🔍</span><span>💬</span><span>⚙️</span></div>
           </div>
           <div id="line-rooms-container" class="flex-1 overflow-y-auto divide-y divide-gray-50 px-2 no-scrollbar"></div>
-          <div class="h-14 border-t border-gray-100 bg-white flex items-center justify-around text-gray-400 text-[10px]">
+          <div class="h-14 border-t border-gray-100 bg-white flex items-center justify-around text-gray-400 text-[10px] flex-shrink-0">
             <div class="flex flex-col items-center gap-0.5"><span class="text-[18px]">🏠</span><span>홈</span></div>
             <div class="flex flex-col items-center gap-0.5 text-[#06C755] font-bold relative"><span class="text-[18px]">💬</span><span>대화</span></div>
             <div class="flex flex-col items-center gap-0.5"><span class="text-[18px]">📃</span><span>뉴스</span></div>
@@ -361,14 +361,15 @@
           </div>
         </div>
 
-        <div id="line-room-screen" class="hidden flex-1 flex flex-col min-h-0 bg-[#8cabd9]">
-          <div class="h-11 px-3 flex items-center justify-between bg-[#8cabd9]/95 backdrop-blur sticky top-0 z-10 text-white flex-shrink-0">
+        <div id="line-room-screen" class="hidden w-full h-full flex flex-col overflow-hidden bg-[#8cabd9]">
+          <div class="h-11 px-3 flex items-center justify-between bg-[#8cabd9]/95 backdrop-blur z-10 text-white flex-shrink-0">
             <button onclick="closeLineRoom()" class="flex items-center gap-1 text-[15px] font-medium px-1"><span>‹</span><span id="line-back-count"></span></button>
             <span id="line-room-title" class="font-bold text-[15.5px]">22드랲</span>
             <div class="flex items-center gap-3 text-sm pr-1"><span>🔍</span><span>📞</span><span>☰</span></div>
           </div>
           
-          <div id="line-messages-area" class="flex-1 min-h-0 overflow-y-auto px-3 py-2 space-y-2.5 no-scrollbar"></div>
+          <!-- 👇 이 영역이 무조건 화면 안에서만 스크롤되도록 강제 고정 -->
+          <div id="line-messages-area" class="flex-1 overflow-y-auto px-3 py-2 space-y-2.5 no-scrollbar" style="-webkit-overflow-scrolling: touch; touch-action: pan-y;"></div>
           
           <div id="line-quick-chips" class="bg-[#8cabd9] px-2.5 py-1.5 flex items-center gap-1.5 overflow-x-auto no-scrollbar border-t border-black/5 flex-shrink-0"></div>
           
@@ -380,7 +381,7 @@
           <div id="line-keyboard" class="bg-[#d1d5db] p-1.5 pt-2 text-gray-900 select-none flex-shrink-0"></div>
         </div>
       </div>
-
+     
       <!-- PHONE -->
       <div id="app-phone" class="app-view app-hidden bg-white text-gray-900">
         <div id="phone-list-screen" class="flex-1 flex flex-col px-4 pt-2">
@@ -1550,7 +1551,7 @@
     });
   }
 
-  // 🔥 1. 자동 타이핑 컷신 플로우 (오류 완벽 수정본)
+  // ================= 1. 자동 타이핑 컷신 플로우 =================
   function triggerAutoType() {
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
@@ -1563,12 +1564,14 @@
       const typeText = async (text) => {
         for (let i = 0; i < text.length; i++) {
           input.value += text.charAt(i);
+          scrollToBottomLine(); 
           await sleep(60 + Math.random() * 50);
         }
       };
       const deleteText = async (count) => {
         for (let i = 0; i < count; i++) {
           input.value = input.value.slice(0, -1);
+          scrollToBottomLine();
           await sleep(50);
         }
       };
@@ -1590,28 +1593,28 @@
           room.isTyping = false;
         })();
       } 
-      // [2단계] 친구들 첫 리액션 끝난 후
+      // [2단계] "더 잘하셔야겠다", "저러네ㅗ" 직후 ME 메시지 타이핑
       else if (room.autoTypeStep === 2 && room.repliesFinished1) {
         room.isTyping = true;
         input.value = "";
         (async () => {
           await sleep(100);
-          await typeText("ㅋㅋㅋ분발하겠습니다 이놈들아ㅗ"); 
+          await typeText("ㅋㅋㅋㅋ분발하겠습니다 이놈들아ㅗ"); 
           room.autoTypeStep = 3; 
           room.isTyping = false;
         })();
       }
-      // [3단계] "누굴까" 폭풍 질문 온 후 (지웠다 쓰는 연출)
+      // [3단계] "진짜 누구지?" 폭풍 질문 온 후 (지웠다 쓰는 연출)
       else if (room.autoTypeStep === 4 && room.repliesFinished2) {
         room.isTyping = true;
         input.value = "";
         (async () => {
           await sleep(100);
-          await typeText("...그러게"); // 먼저 타이핑
-          await sleep(400);            // 멈칫
-          await deleteText(6);         // '...그러게' 지우기
-          await sleep(300);            // 멈칫
-          await typeText("누굴까."); // 다시 타이핑
+          await typeText("...그러게"); 
+          await sleep(400);            
+          await deleteText(6);         
+          await sleep(300);            
+          await typeText("누굴까."); 
           room.autoTypeStep = 5; 
           room.isTyping = false;
         })();
@@ -1619,16 +1622,14 @@
     }
   }
 
-  // 🔥 2. 전송 클릭 시 단계별 메시지 연계 (괄호 누락 완벽 수정본)
+  // ================= 2. 전송 클릭 시 단계별 메시지 연계 =================
   function sendLineMessage() {
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
     if (!room.pushCompleted) return;
 
-    // 컷신 도중 미전송 상태에서 전송 방지 (오류 방지)
-    if (currentLineRoom === 'draft' && [0, 2, 4, 5].includes(room.autoTypeStep)) {
-      if (room.autoTypeStep === 5) return; // 마지막 메시지는 전송 눌러도 무시하려면 유지
-    }
+    // 컷신 도중(타이핑 중)이거나 미전송 상태일 때 전송 버튼 무시
+    if (currentLineRoom === 'draft' && [0, 2, 4].includes(room.autoTypeStep)) return;
 
     const input = document.getElementById('line-input');
     const text = input.value.trim();
@@ -1643,23 +1644,23 @@
 
     // 컷신 연결 제어
     if (currentLineRoom === 'draft') {
-      // 1단계 전송 직후 -> 친구들 대사 4개 출력
+      // 1단계 전송 직후 -> 친구들 대사 6개 출력 ("더 잘하셔야겠다", "저러네ㅗ" 포함)
       if (room.autoTypeStep === 1) {
         room.autoTypeStep = 2;
         runSequentialReplies('draft', [
           { name: "22넛", text: "ㅋㅋㅋㅋㅋㅋ" }, 
           { name: "22옴", text: "푸니최애푸푸><" },
           { name: "22홍", text: "꽤나부러웅디..." },
-          { name: "22산타", text: "ㅋㅋㅋㅋㅋ이와중에 부러워하는거 뭔데" }
+          { name: "22산타", text: "ㅋㅋㅋㅋㅋ이와중에 부러워하는거 뭔데" },
+          { name: "22넛", text: "더 잘하셔야겠다" },
+          { name: "22옴", text: "저러네ㅗ" }
         ], () => { room.repliesFinished1 = true; }); 
         return;
       } 
-      // 2단계 전송 직후 -> 추가하신 대량의 대사 출력
+      // 2단계 (ME: ㅋㅋㅋㅋ분발하겠습니다 이놈들아ㅗ) 전송 직후 -> "누굴까" 폭풍 질문
       else if (room.autoTypeStep === 3) {
         room.autoTypeStep = 4;
         runSequentialReplies('draft', [
-          { name: "22넛", text: "더 잘하셔야겠다" },
-          { name: "22옴", text: "저러네ㅗ" },
           { name: "22옴", text: "근데 누굴까" },
           { name: "22넛", text: "직원이시겠지" },
           { name: "22옴", text: "내가 그걸 모를까" },
@@ -1674,14 +1675,18 @@
         ], () => { room.repliesFinished2 = true; });
         return;
       }
-    } 
+      // 3단계 ("누굴까.") 전송 직후 -> 컷신 종료
+      else if (room.autoTypeStep === 5) {
+        room.autoTypeStep = 6; 
+      }
+    }
   }
 
+  // ================= 3. 키보드 입력 및 지우기 연동 =================
   function appendKey(char) {
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
     
-    // 자동 타이핑 해금 시 클릭하면 바로 트리거
     if (currentLineRoom === 'draft' && room.pushCompleted) {
       if (room.autoTypeStep === 0 && room.visitedInsta) { triggerAutoType(); return; }
       if (room.autoTypeStep === 2 && room.repliesFinished1) { triggerAutoType(); return; }
@@ -1694,8 +1699,6 @@
     let chars = Hangul.disassemble(input.value);
     chars.push(char);
     input.value = Hangul.assemble(chars);
-    
-    scrollToBottomLine(); // 타이핑 시 스크롤 맨 아래로
   }
 
   function backspaceKey() {
@@ -1714,8 +1717,6 @@
     let chars = Hangul.disassemble(input.value);
     chars.pop();
     input.value = Hangul.assemble(chars);
-    
-    scrollToBottomLine(); // 지울 때 스크롤 맨 아래로
   }
 
   function pushIncomingLine(roomId, messages) {
