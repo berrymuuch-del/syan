@@ -946,16 +946,23 @@
   ];
 
   // ================= 스크롤 강제 맨 아래 함수 =================
-  function scrollToBottomLine() {
-    const area = document.getElementById('line-messages-area');
-    if (area) {
-      requestAnimationFrame(() => {
-        area.scrollTop = area.scrollHeight;
-        setTimeout(() => { area.scrollTop = area.scrollHeight; }, 20);
-        setTimeout(() => { area.scrollTop = area.scrollHeight; }, 100);
-      });
-    }
+  // ================= 스크롤 강제 맨 아래 함수 =================
+function scrollToBottomLine() {
+  const area = document.getElementById('line-messages-area');
+  if (area) {
+    // 부드러운 스크롤(scroll-smooth)로 인한 딜레이 강제 해제
+    area.style.scrollBehavior = 'auto'; 
+    
+    requestAnimationFrame(() => {
+      area.scrollTop = area.scrollHeight;
+      setTimeout(() => { area.scrollTop = area.scrollHeight; }, 10);
+      setTimeout(() => { 
+        area.scrollTop = area.scrollHeight; 
+        area.style.scrollBehavior = 'smooth'; // 스크롤 후 다시 원상복구
+      }, 50);
+    });
   }
+}
 
   // ================= 반복 UI 생성 =================
   function buildKeypad() {
@@ -1630,7 +1637,7 @@
         input.value = "";
         (async () => {
           await sleep(100);
-          await typeText("더 잘하셔야겠다"); 
+          await typeText("ㅋㅋㅋㅋㅋㅋㅋ"); 
           room.autoTypeStep = 3; 
           room.isTyping = false;
         })();
@@ -1692,8 +1699,8 @@
       else if (room.autoTypeStep === 3) {
         room.autoTypeStep = 4;
         runSequentialReplies('draft', [
-          { name: "22옴", text: "아자아자ㅏㅏ" },
-          { name: "22홍", text: "가자아아!!!" },
+          { name: "22옴", text: "더 잘하셔야게땅" },
+          { name: "22홍", text: "아자아자ㅏㅏㅏㅏ" },
           { name: "22산타", text: "오 갑자기 궁금하긴하다 누굴까" }
         ], () => { room.repliesFinished2 = true; });
         return;
