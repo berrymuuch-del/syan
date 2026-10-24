@@ -762,7 +762,7 @@
         { sender: "them", name: "22넛", text: "..너네 다 아는데 나만 모른다고?", time: "오전 10:26" },
         { sender: "me", text: "뒤쳐졌네.", time: "오전 10:26" },
         { sender: "them", name: "22산타", text: "에궁.,,", time: "오전 10:26" },
-        { sender: "them", name: "22옴", text: "나이들면 그럴 수 있어", time: "오후 10:27" },
+        { sender: "them", name: "22옴", text: "나이들면 그럴 수 있어", time: "오전 10:27" },
         { sender: "them", name: "22옴", text: "우리가 이해해주자...", time: "오전 10:27" },
         { sender: "them", name: "22산타", text: "ㅋㅋㅋㅋㅋㅋㅋㅋ", time: "오전 10:28" },
         { sender: "them", name: "22넛", text: "다른 사람은 몰라도", time: "오전 10:28" },
@@ -787,7 +787,7 @@
         { sender: "them", name: "22옴", text: "저새끼는 나한테만 저래", time: "오전 09:23" },
         { sender: "me", text: "쟨 누구한테나 저래.", time: "오전 09:23" },
         { sender: "them", name: "22홍", text: "잉?", time: "오전 09:23" },
-        { sender: "them", name: "22넛", text: "ㄴㄴ ㄲㅈ", time: "오후 09:23" },
+        { sender: "them", name: "22넛", text: "ㄴㄴ ㄲㅈ", time: "오전 09:23" },
         { sender: "them", name: "22옴", text: "아니 그래서 안빌려주냐고...", time: "오전 09:24" },
         { sender: "them", name: "22산타", text: "ㅋㅋㅋㅋㅋㅋㅋㅋ", time: "오전 09:26" },
         { sender: "them", name: "22산타", text: "나 한개 더 있어", time: "오전 09:26" },
@@ -949,18 +949,6 @@
     { id: "spam", name: "6661-414-4046", label: "휴대전화", time: "수요일", missed: true },
     { id: "newt", name: "블레이즈 뉴트 선배님", label: "휴대전화", time: "2026. 9. 14.", missed: false }
   ];
-
-  // ================= 스크롤 강제 맨 아래 함수 =================
- function scrollToBottomLine() {
-    const area = document.getElementById('line-messages-area');
-    if (area) {
-      requestAnimationFrame(() => {
-        area.scrollTop = area.scrollHeight;
-        // 아주 미세한 렌더링 딜레이를 고려해 한 번 더 확실하게 바닥으로 내림
-        setTimeout(() => { area.scrollTop = area.scrollHeight; }, 20);
-      });
-    }
-  }
 
   // ================= 반복 UI 생성 =================
   function buildKeypad() {
@@ -1511,31 +1499,7 @@
     scrollToBottomLine();
   }
 
-  // 🔥 순차적 자동 답장 및 스크롤 완벽 동기화 
-  function runSequentialReplies(roomId, repliesArray, onComplete) {
-    const room = lineRooms[roomId];
-    let delay = 300;
-    repliesArray.forEach((replyObj, idx) => {
-      const replyText = typeof replyObj === 'object' ? replyObj.text : replyObj;
-      const replyName = typeof replyObj === 'object' ? replyObj.name : null;
-
-      setTimeout(() => {
-        room.messages.push({ sender: 'typing', name: replyName, text: '...', time: '' });
-        if (currentLineRoom === roomId) renderLineMessages();
-        scrollToBottomLine();
-      }, delay);
-      
-      delay += 1000;
-      
-      setTimeout(() => {
-        room.messages = room.messages.filter(m => m.sender !== 'typing');
-        const divider = ensureTodayDivider(room);
-        room.messages.push({ dateDivider: divider, sender: 'them', name: replyName, text: replyText, time: '오전 12:16' });
-        room.time = '오전 12:16';
-        
-        if (currentLineRoom === roomId) {
-          renderLineMessages();
-         // ================= 0. 가상 시간 시스템 (12시 16분부터 시작해서 조금씩 증가) =================
+  // ================= 0. 가상 시간 시스템 (12시 16분부터 시작해서 조금씩 증가) =================
   let simMinutes = 16;
   let msgCountForTime = 0;
   function getSimTime() {
@@ -1545,11 +1509,10 @@
     return `오전 12:${m}`;
   }
 
-  // ================= 1. 스크롤 강제 맨 아래 함수 (스크롤 먹통 완벽 해결) =================
+  // ================= 1. 스크롤 강제 맨 아래 함수 =================
   function scrollToBottomLine() {
     const area = document.getElementById('line-messages-area');
     if (area) {
-      // 버그를 유발하던 smooth 애니메이션 제거하고 즉시 바닥으로 고정
       area.scrollTop = area.scrollHeight;
       setTimeout(() => { area.scrollTop = area.scrollHeight; }, 30);
     }
