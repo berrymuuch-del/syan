@@ -31,6 +31,7 @@
     background-repeat: no-repeat;
   }
 
+  #view-lock, #view-passcode { touch-action: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   .ios-glass { background: rgba(255,255,255,0.18); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
@@ -1098,50 +1099,46 @@
   // ================= LOCK SCREEN & PASSCODE =================
   function initLockScreenSwipe() {
     const lockEl = document.getElementById('view-lock');
-    let startY = 0, currentY = 0, isDragging = false;
+    let startY = 0, currentY = 0, isDragging = false, activeId = null;
 
-    const onStart = (e) => {
-      const y = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-      startY = y; currentY = y; isDragging = true;
-      lockEl.style.transition = 'none';
-    };
-    
-    const onMove = (e) => {
-      if (!isDragging) return;
-      if (e.cancelable) e.preventDefault(); 
-      
-      const y = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-      currentY = y;
-      const deltaY = currentY - startY;
-      if (deltaY < 0) lockEl.style.transform = `translateY(${deltaY}px)`;
-    };
-    
-    const onEnd = () => {
+    function openPasscode() {
+      const passView = document.getElementById('view-passcode');
+      passView.classList.remove('hidden');
+      passView.classList.add('flex');
+      passInput = "";
+      updatePassDots();
+      lockEl.style.transform = 'translateY(-100%)';
+      setTimeout(() => { lockEl.classList.add('hidden'); lockEl.style.transform = ''; }, 280);
+    }
+
+    function finish(cancelled) {
       if (!isDragging) return;
       isDragging = false;
       const deltaY = currentY - startY;
       lockEl.style.transition = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
-      
-      if (deltaY < -20) {
-        const passView = document.getElementById('view-passcode');
-        passView.classList.remove('hidden');
-        passView.classList.add('flex');
-        passInput = "";
-        updatePassDots();
-        lockEl.style.transform = 'translateY(-100%)';
-        setTimeout(() => { lockEl.classList.add('hidden'); lockEl.style.transform = ''; }, 280);
-      } else {
-        lockEl.style.transform = 'translateY(0)';
-      }
-    };
+      // 위로 20px 이상 쓸었거나, 거의 안 움직인 탭이면 잠금 해제 화면으로
+      if (deltaY < -20 || (!cancelled && Math.abs(deltaY) < 8)) openPasscode();
+      else lockEl.style.transform = 'translateY(0)';
+    }
 
-    lockEl.addEventListener('mousedown', onStart);
-    window.addEventListener('mousemove', onMove, { passive: false });
-    window.addEventListener('mouseup', onEnd);
-    
-    lockEl.addEventListener('touchstart', onStart, { passive: false });
-    window.addEventListener('touchmove', onMove, { passive: false });
-    window.addEventListener('touchend', onEnd);
+    lockEl.addEventListener('pointerdown', (e) => {
+      if (isDragging) return;
+      isDragging = true; activeId = e.pointerId;
+      startY = currentY = e.clientY;
+      lockEl.style.transition = 'none';
+      try { lockEl.setPointerCapture(e.pointerId); } catch (_) {}
+    });
+    lockEl.addEventListener('pointermove', (e) => {
+      if (!isDragging || e.pointerId !== activeId) return;
+      currentY = e.clientY;
+      const deltaY = currentY - startY;
+      if (deltaY < 0) lockEl.style.transform = `translateY(${deltaY}px)`;
+    });
+    lockEl.addEventListener('pointerup', (e) => { if (e.pointerId === activeId) finish(false); });
+    lockEl.addEventListener('pointercancel', (e) => { if (e.pointerId === activeId) finish(true); });
+    lockEl.addEventListener('lostpointercapture', (e) => { if (e.pointerId === activeId) finish(true); });
+    // iOS Safari: 잠금화면에서 페이지가 끌려 올라가는 것 방지
+    lockEl.addEventListener('touchmove', (e) => { if (e.cancelable) e.preventDefault(); }, { passive: false });
   }
 
   function cancelPasscode() {
@@ -1670,7 +1667,7 @@
           { name: "22옴", text: "ㅋㅋㅋㅋ근데 누굴까" },
           { name: "22넛", text: "뭐가" },
           { name: "22옴", text: "푸니!!!" },
-          { name: "22옴", text: "직원이시겠지" },
+          { name: "22넛", text: "직원이시겠지" },
           { name: "22옴", text: "아ㅡㅡ 내가 그걸 모를까" },
           { name: "22넛", text: "ㅇㅇ 너가 그걸 모를까" },
           { name: "22산타", text: "에휴,,, 또 저러네..." },
@@ -2230,15 +2227,9 @@
   function onIslandClick() { if (isMusicPlaying) openApp('music'); }
 
   // ================= INIT =================
-  buildKeypad();
-  buildKeyboard();
-  buildPhotos();
-  renderMusicList(); 
-  renderSettings();
-  renderInstaFeed();
-  renderInstaProfileGrid();
-  initLockScreenSwipe();
-  updateLineBadges();
+  [buildKeypad, buildKeyboard, buildPhotos, renderMusicList, renderSettings,
+   renderInstaFeed, renderInstaProfileGrid, initLockScreenSwipe, updateLineBadges]
+    .forEach(fn => { try { fn(); } catch (err) { console.error('init 실패:', fn.name, err); } });
   
   // 키보드 이벤트 연결 추가
   window.addEventListener('keydown', (e) => {
