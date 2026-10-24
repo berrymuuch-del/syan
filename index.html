@@ -1667,20 +1667,32 @@
         ], () => { room.repliesFinished1 = true; }); 
         return;
       } 
-      // 2단계 전송 직후 -> "아자아자" 2개 출력 (유실 복구)
+      // 2단계 전송 직후 -> "아자아자" 및 추가 대사 출력
       else if (room.autoTypeStep === 3) {
         room.autoTypeStep = 4;
         runSequentialReplies('draft', [
-          { name: "22옴", text: "아자아자ㅏㅏ" },
-          { name: "22홍", text: "가자아아!!!" }
+          { name: "22넛", text: "더 잘하셔야겠다" },
+          { name: "22옴", text: "저러네ㅗ" },
+          // 👇 여기에 추가하고 싶은 친구들 대사를 마음껏 넣으세요! (마지막 줄 빼고 끝에 쉼표 필수)
+          { name: "22옴", text: "근데 누굴까" },
+          { name: "22넛", text: "직원이시겠지" },
+          { name: "22옴", text: "내가 그걸 모를까" },
+          { name: "22넛", text: "너가 그걸 모를까" },
+          { name: "22산타", text: "또 저러네..." },
+          { name: "22홍", text: "근데 진짜 누굴까" },
+          { name: "22홍", text: "본 적 있는 사람?" },
+          { name: "22넛", text: "난 아니" },
+          { name: "22옴", text: "나도!!!!!!!!!!!" },
+          { name: "22산타", text: "그러고보니 나도 본 적 없긴하다" }
         ], () => { room.repliesFinished2 = true; });
         return;
       }
-      // 3단계 전송 직후 -> "누굴까" 질문 1개 출력
+      // 3단계 전송 직후 -> "누굴까" 질문 출력
       else if (room.autoTypeStep === 5) {
         room.autoTypeStep = 6;
         runSequentialReplies('draft', [
-          { name: "22산타", text: "오 갑자기 궁금하긴하다 누굴까" }
+          // 👇 "누굴까" 전에 빌드업 대사를 넣고 싶다면 여기에! 
+          { name: "22산타", text: "진짜 누구지?" }
         ], () => { room.repliesFinished3 = true; });
         return;
       }
