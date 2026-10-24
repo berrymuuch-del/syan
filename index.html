@@ -1552,6 +1552,7 @@
   // 🔥 1. 자동 타이핑 컷신 플로우 (유실된 3단계 복구 및 4단계 확장)
   // 🔥 1. 자동 타이핑 컷신 플로우 (괄호 오류 수정)
   // 🔥 1. 자동 타이핑 컷신 플로우 (오류 수정 및 괄호 정리 완료)
+  // 🔥 1. 자동 타이핑 컷신 플로우 (오류 완벽 수정본)
   function triggerAutoType() {
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
@@ -1587,12 +1588,11 @@
           await typeText("고맙"); await sleep(150);
           await deleteText(2);    await sleep(150);
           await typeText("ㅋㅋㅋ부끄럽네ㅜ");
-          
           room.autoTypeStep = 1; 
           room.isTyping = false;
         })();
       } 
-      // [2단계] 친구들 첫 리액션 4개 끝난 후
+      // [2단계] 친구들 첫 리액션 끝난 후
       else if (room.autoTypeStep === 2 && room.repliesFinished1) {
         room.isTyping = true;
         input.value = "";
@@ -1603,8 +1603,8 @@
           room.isTyping = false;
         })();
       }
-      // [4단계] "누굴까" 질문 온 후 (지웠다 쓰는 연출)
-      else if (room.autoTypeStep === 6 && room.repliesFinished3) {
+      // [3단계] "누굴까" 폭풍 질문 온 후 (지웠다 쓰는 연출)
+      else if (room.autoTypeStep === 4 && room.repliesFinished2) {
         room.isTyping = true;
         input.value = "";
         (async () => {
@@ -1614,22 +1614,22 @@
           await deleteText(6);         // '...그러게' 지우기
           await sleep(300);            // 멈칫
           await typeText("누굴까."); // 다시 타이핑
-          room.autoTypeStep = 7; 
+          room.autoTypeStep = 5; 
           room.isTyping = false;
         })();
       }
     }
   }
 
-  // 🔥 2. 전송 클릭 시 단계별 메시지 연계
+  // 🔥 2. 전송 클릭 시 단계별 메시지 연계 (괄호 누락 완벽 수정본)
   function sendLineMessage() {
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
     if (!room.pushCompleted) return;
 
     // 컷신 도중 미전송 상태에서 전송 방지 (오류 방지)
-    if (currentLineRoom === 'draft' && [0, 2, 4, 6, 7].includes(room.autoTypeStep)) {
-      if (room.autoTypeStep === 7) return; // 마지막 메시지는 전송 눌러도 무시하려면 유지
+    if (currentLineRoom === 'draft' && [0, 2, 4, 5].includes(room.autoTypeStep)) {
+      if (room.autoTypeStep === 5) return; // 마지막 메시지는 전송 눌러도 무시하려면 유지
     }
 
     const input = document.getElementById('line-input');
@@ -1656,13 +1656,12 @@
         ], () => { room.repliesFinished1 = true; }); 
         return;
       } 
-      // 2단계 전송 직후 -> "아자아자" 및 추가 대사 출력
+      // 2단계 전송 직후 -> 추가하신 대량의 대사 출력
       else if (room.autoTypeStep === 3) {
         room.autoTypeStep = 4;
         runSequentialReplies('draft', [
           { name: "22넛", text: "더 잘하셔야겠다" },
           { name: "22옴", text: "저러네ㅗ" },
-          // 👇 여기에 추가하고 싶은 친구들 대사를 마음껏 넣으세요! (마지막 줄 빼고 끝에 쉼표 필수)
           { name: "22옴", text: "근데 누굴까" },
           { name: "22넛", text: "직원이시겠지" },
           { name: "22옴", text: "내가 그걸 모를까" },
@@ -1677,6 +1676,8 @@
         ], () => { room.repliesFinished2 = true; });
         return;
       }
+    } // <-- 이 괄호들이 빠져있어서 에러가 났었습니다!
+  }
 
   function pushIncomingLine(roomId, messages) {
     const room = lineRooms[roomId];
