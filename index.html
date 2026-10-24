@@ -1598,33 +1598,23 @@
         input.value = "";
         (async () => {
           await sleep(100);
-          await typeText("ㅋㅋㅋㅋㅋㅋㅋ"); 
+          await typeText("ㅋㅋㅋ분발하겠습니다 이놈들아ㅗ"); 
           room.autoTypeStep = 3; 
           room.isTyping = false;
         })();
-      }
-      // [3단계] "아자아자" 리액션 2개 끝난 후 (유실되었던 부분 복구!)
-      else if (room.autoTypeStep === 4 && room.repliesFinished2) {
-        room.isTyping = true;
-        input.value = "";
-        (async () => {
-          await sleep(100);
-          await typeText("ㅋㅋㅋㅋ분발하겠습니다 이놈들아ㅗ"); 
-          room.autoTypeStep = 5; 
-          room.isTyping = false;
-        })();
-      }
+      }})();
+      
       // [4단계] "누굴까" 질문 온 후 (지웠다 쓰는 연출)
       else if (room.autoTypeStep === 6 && room.repliesFinished3) {
         room.isTyping = true;
         input.value = "";
         (async () => {
           await sleep(100);
-          await typeText("나도 누군지"); // 먼저 타이핑
+          await typeText("...그러게"); // 먼저 타이핑
           await sleep(400);            // 멈칫
-          await deleteText(3);         // '누군지' 지우기
+          await deleteText(6);         // '...그러게' 지우기
           await sleep(300);            // 멈칫
-          await typeText("궁금하네ㅋㅋ"); // 다시 타이핑
+          await typeText("누굴까."); // 다시 타이핑
           room.autoTypeStep = 7; 
           room.isTyping = false;
         })();
@@ -1683,21 +1673,11 @@
           { name: "22홍", text: "본 적 있는 사람?" },
           { name: "22넛", text: "난 아니" },
           { name: "22옴", text: "나도!!!!!!!!!!!" },
-          { name: "22산타", text: "그러고보니 나도 본 적 없긴하다" }
+          { name: "22산타", text: "그러고보니 나도 본 적 없긴하다" },
+          { name: "22산타", text: "진짜 누구지?" }
         ], () => { room.repliesFinished2 = true; });
         return;
       }
-      // 3단계 전송 직후 -> "누굴까" 질문 출력
-      else if (room.autoTypeStep === 5) {
-        room.autoTypeStep = 6;
-        runSequentialReplies('draft', [
-          // 👇 "누굴까" 전에 빌드업 대사를 넣고 싶다면 여기에! 
-          { name: "22산타", text: "진짜 누구지?" }
-        ], () => { room.repliesFinished3 = true; });
-        return;
-      }
-    }
-  }
 
   function pushIncomingLine(roomId, messages) {
     const room = lineRooms[roomId];
