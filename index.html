@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#000000">
 <title>Phuwin_iPhone</title>
 <script src="https://cdn.tailwindcss.com"></script>
- <!-- 이 줄을 Tailwind 스크립트 바로 밑에 꼭 넣어주세요! -->
+<!-- 한글 합성 라이브러리 -->
 <script src="https://cdn.jsdelivr.net/npm/hangul-js@0.2.6/hangul.min.js"></script>
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
 <style>
@@ -15,14 +15,14 @@
   .iphone-frame { width: 390px; height: 830px; background: #000; border-radius: 56px; padding: 12px; box-shadow: 0 0 0 2px #334155, 0 0 0 5px #1e293b, 0 25px 60px -10px rgba(0,0,0,0.85); position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
   .iphone-screen { width: 100%; height: 100%; background: #000; border-radius: 45px; position: relative; overflow: hidden; display: flex; flex-direction: column; }
   
- html, body { background: #000; overscroll-behavior: none; touch-action: manipulation; }
- 
-  /* [모바일 대응] 사파리 주소창/하단바에 dock이 가려지지 않도록 실제 보이는 화면(dvh)에 맞춤 */
+  html, body { background: #000; overscroll-behavior: none; touch-action: manipulation; }
+  
+  /* [모바일 대응] */
   html { height: 100%; }
   .iphone-frame { transform-origin: center center; }
   #view-home { padding-bottom: 1.5rem; }
 
-  /* [잠금화면 & 홈 배경화면 변경 위치] url('') 안에 이미지 주소를 넣으세요 */
+  /* [잠금화면 & 홈 배경화면 변경 위치] */
   .star-wallpaper {
     background-color: #09060f;
     background-image: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2FChvdV%2FdJMcaaHmvWe%2FAAAAAAAAAAAAAAAAAAAAAL3mAyXToBLu3AtHZ8P7w9xTRaf1In361g4kbK8vU2EJ%2Ftfile.jpg%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1793458799%26allow_ip%3D%26allow_referer%3D%26signature%3D4jObwU1Ksyv2bz%252B1ueNOlPPZXAc%253D');
@@ -243,7 +243,6 @@
               <span class="text-[11px] font-medium text-white/95">사진</span>
             </div>
 
-            <!-- 캘린더 홈 아이콘: 일요일 20일 -->
             <div onclick="openApp('calendar')" class="flex flex-col items-center gap-1 cursor-pointer group">
               <div class="w-[58px] h-[58px] rounded-[14px] bg-white flex flex-col items-center justify-center shadow-md group-active:scale-90 transition">
                 <span class="text-[10px] font-bold text-red-500 leading-none">일요일</span>
@@ -699,7 +698,7 @@
   </div>
 
 <script>
-  // 폰 프레임(390x830) 비율을 그대로 유지하면서, 사파리 주소창/하단바를 뺀 '실제 보이는 영역'에 맞춰 전체를 축소
+  // ================= 1. 모바일 뷰포트 맞춤 =================
   function fitPhone() {
    const f = document.querySelector('.iphone-frame');
    if (!f) return;
@@ -718,42 +717,7 @@
    }
    f.style.width = ''; f.style.height = ''; f.style.padding = '';
  }
-</script>
 
- function runAutoInstaSequence() {
-    const room = lineRooms.draft;
-    if (room.visitedInsta) return;
-
-    // 1. 채팅방 안의 인스타 링크 요소 찾기
-    const links = Array.from(document.querySelectorAll('#line-messages-area span.text-blue-600'));
-    const targetLink = links.find(el => el.textContent.includes('instagram.com'));
-
-    // 2. 사용자가 직접 터치한 것처럼 파란색 배경 깜빡임 연출
-    if (targetLink) {
-      targetLink.style.transition = 'all 0.15s ease';
-      targetLink.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
-      targetLink.style.borderRadius = '4px';
-      
-      setTimeout(() => {
-        targetLink.style.backgroundColor = 'transparent';
-      }, 200);
-    }
-
-    // 3. 0.4초 뒤 인스타 화면(0번 게시물)으로 자동 이동
-    setTimeout(() => {
-      goToInstaFromLine('0'); 
-      
-      // 4. 인스타 영상을 4.5초간 시청한 뒤 라인 채팅방으로 자동 복귀
-      setTimeout(() => {
-        openApp('line');
-        openLineRoom('draft');
-        // 복귀 후에는 키보드를 누르면 1차 자동입력이 시작됩니다.
-      }, 4500); 
-
-    }, 400);
-  }
- 
-<script>
   // ================= DATA & STATE =================
   let passInput = "";
   const CORRECT_PASSCODE = "0705";
@@ -890,8 +854,12 @@
         { sender: "me", text: "다들 잘자.", time: "오후 11:10" },
         { sender: "them", name: "22넛", text: "ㅋㅋㅋㅋ냅다 재우네", time: "오후 11:10" }
       ],
+      // 🔥 [추가된 컷신용 상태 변수들]
       hasTriggeredInitialPush: false,
-      pushCompleted: false
+      pushCompleted: false,
+      autoTypeStep: 0,
+      visitedInsta: false,
+      repliesFinished: false
     },
     mom: {
       id: "mom", name: "엄마", avatar: "", unread: 0, time: "어제",
@@ -1028,15 +996,14 @@
     }).join('');
   }
 
+  // 🔥 [수정완료] 0초 반응형 고속 타이핑 키보드 
   function buildKeyboard() {
     const kb = document.getElementById('line-keyboard');
-    // 🚨 1. 브라우저의 모든 터치 제스처(확대, 스크롤 등)를 키보드 영역에서 완벽히 차단 (딜레이 원천 제거)
-    kb.style.touchAction = 'none';
+    kb.style.touchAction = 'none'; // 터치 딜레이 방지
 
     const keyCls = 'bg-white rounded py-2 text-[14px] font-medium shadow-sm select-none transition-transform';
     const fnCls = 'bg-[#abb0ba] rounded py-2 text-[13px] font-medium select-none transition-transform';
     
-    // 버튼마다 이벤트를 달지 않고 data-key 속성만 부여 (메모리 낭비 및 버벅임 방지)
     const getEv = (c) => `data-key="${c}"`;
     const row = (chars) => chars.split('').map(c => 
       `<button ${getEv(c)} class="${keyCls}">${c}</button>`
@@ -1055,15 +1022,11 @@
         <button ${getEv('enter')} class="bg-[#06C755] text-white rounded py-2 text-[12px] font-medium select-none">전송</button>
       </div>`;
 
-    // 🚨 2. pointerdown 이벤트 사용 (터치와 마우스 클릭의 중복 인식을 막아 '고스트 클릭' 에러 해결)
     kb.onpointerdown = function(e) {
       const btn = e.target.closest('button[data-key]');
       if (!btn) return;
-      
-      e.preventDefault(); // 기본 이벤트 강제 취소 (포커스 이동 방지)
+      e.preventDefault(); 
 
-      // 🚨 3. 화면을 버벅이게 만드는 색상 변경(bg-color) 대신, 
-      // 그래픽 카드(GPU)를 사용하는 투명도/크기 조절로 시각 효과 변경 (렉 완전 제로)
       btn.style.transform = 'scale(0.85)';
       btn.style.opacity = '0.6';
       setTimeout(() => {
@@ -1071,7 +1034,6 @@
         btn.style.opacity = '1';
       }, 70);
 
-      // 키 입력 처리
       const char = btn.getAttribute('data-key');
       if (char === 'back') backspaceKey();
       else if (char === 'space') appendKey(' ');
@@ -1098,7 +1060,6 @@
   function renderMusicList() {
     const container = document.getElementById('music-list-container');
     container.innerHTML = musicTracks.map((t, i) => {
-      // 선택된 곡은 볼드 및 색상 변경
       const isSelected = i === currentTrackIdx;
       const titleClass = isSelected ? "font-bold text-[14.5px] text-rose-500" : "font-medium text-[14.5px] text-gray-900";
       return `
@@ -1181,7 +1142,6 @@
     
     const onMove = (e) => {
       if (!isDragging) return;
-      // 🚨 이 부분이 핵심입니다! 아이폰에서 화면이 들썩이면서 터치가 끊기는 현상을 강제로 막아줍니다.
       if (e.cancelable) e.preventDefault(); 
       
       const y = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
@@ -1208,7 +1168,6 @@
       }
     };
 
-    // 모바일 터치 이벤트에 { passive: false }를 주어야 preventDefault가 정상 작동합니다.
     lockEl.addEventListener('mousedown', onStart);
     window.addEventListener('mousemove', onMove, { passive: false });
     window.addEventListener('mouseup', onEnd);
@@ -1345,7 +1304,56 @@
     document.getElementById('notes-list-screen').classList.remove('hidden');
   }
 
+
   // ================= LINE =================
+
+  // 🔥 [추가 완료] 자동 컷신 시퀀스 
+  window.runAutoInstaSequence = function() {
+    const room = lineRooms.draft;
+    if (room.visitedInsta) return;
+    
+    room.visitedInsta = true; 
+
+    const links = Array.from(document.querySelectorAll('#line-messages-area span.text-blue-600'));
+    const targetLink = links.find(el => el.textContent.includes('instagram.com'));
+
+    if (targetLink) {
+      targetLink.style.transition = 'all 0.15s ease';
+      targetLink.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
+      targetLink.style.borderRadius = '4px';
+      setTimeout(() => { targetLink.style.backgroundColor = 'transparent'; }, 200);
+    }
+
+    setTimeout(() => {
+      openApp('insta');
+      showInstaFeed(); 
+      
+      setTimeout(() => {
+        const posts = document.querySelectorAll('#insta-posts > article');
+        if (posts[0]) {
+          posts[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
+          const video = posts[0].querySelector('video');
+          if (video) {
+             video.play();
+             video.closest('.ig-slide').classList.add('playing');
+          }
+        }
+      }, 150);
+
+      setTimeout(() => {
+        document.querySelectorAll('#app-insta video').forEach(v => {
+          v.pause();
+          const slide = v.closest('.ig-slide');
+          if (slide) slide.classList.remove('playing');
+        });
+        openApp('line');
+        openLineRoom('draft'); 
+      }, 4500); 
+
+    }, 400);
+  };
+
+
   function updateLineBadges() {
     const total = Object.values(lineRooms).reduce((sum, r) => sum + (r.unread || 0), 0);
     const homeBadge = document.getElementById('badge-line');
@@ -1387,13 +1395,13 @@
     }).join('');
     updateLineBadges();
   }
- function updateLineInputState() {
+
+  function updateLineInputState() {
     const inputContainer = document.getElementById('line-input-container');
     const keyboard = document.getElementById('line-keyboard');
     const inputField = document.getElementById('line-input'); 
     const chipBar = document.getElementById('line-quick-chips');
 
-    // ★ 투명도(파란창 원인)를 없애고 모든 방에서 정상 상태(100% 불투명)로 강제 고정 ★
     if (inputContainer) {
       inputContainer.style.pointerEvents = 'auto';
       inputContainer.style.opacity = '1';
@@ -1408,7 +1416,6 @@
     }
 
     if (chipBar) {
-      // 팝업 알림이 끝나고 드랲 방일 때만 칩(빠른 답장) 표시, 그 외엔 무조건 숨김
       if (lineRooms.draft.pushCompleted && currentLineRoom === 'draft' && autoReplyRules.length > 0) {
         chipBar.classList.remove('hidden');
       } else {
@@ -1417,6 +1424,7 @@
     }
   }
   
+  // 🔥 [수정 완료] 방 입장 및 컷신 실행 연결 
   function openLineRoom(roomId) {
     currentLineRoom = roomId;
     const room = lineRooms[roomId];
@@ -1426,34 +1434,37 @@
     document.getElementById('line-room-screen').classList.remove('hidden');
     document.getElementById('line-room-title').textContent = room.name;
     
-    // 방에 입장할 때마다 입력 상태 확인 및 갱신
     updateLineInputState(); 
     renderLineMessages();
     renderLineQuickChips();
 
-    // 넛 대화방 입장 시 22드랲(5)에 푸시 알림 트리거 및 자동 컷신 대기
+    // 푸시 알림 눌러서 방에 들어왔을 때 바로 컷신 실행
+    if (roomId === 'draft' && room.pushCompleted && !room.visitedInsta) {
+      setTimeout(() => { runAutoInstaSequence(); }, 600);
+    }
+
     if (roomId === 'nut' && !lineRooms.draft.hasTriggeredInitialPush) {
       lineRooms.draft.hasTriggeredInitialPush = true;
       setTimeout(() => {
         pushIncomingLine('draft', [
           { name: "22옴", text: "너네 이거 봤어? ㅋㅋㅋㅋ" },
-          { name: "22옴", text: "https://instagram.com/p/record._.17", instaLink: "0" },
+          { name: "22옴", text: "https://instagram.com/p/record._.17", instaLink: "0" }, 
           { name: "22넛", text: "탕큐 존나 잘해야겟네ㅜ" },
           { name: "22홍", text: "헐 귀여워 나때도 해주라고 해줘" },
           { name: "22산타", text: "ㅋㅋㅋㅋㅋㅋㅋㅋ" },
           { name: "22산타", text: "소감한말씀듣겠습니다ㅇㄹㄱ" }
         ]);
         
-        // 총 6개의 메시지가 다 도착하는 시간(약 5초) 대기 후 자동 컷신 실행
         setTimeout(() => {
           lineRooms.draft.pushCompleted = true;
-          if (currentLineRoom === 'draft') {
+          if (currentLineRoom === 'draft' && !lineRooms.draft.visitedInsta) {
             updateLineInputState();
-            runAutoInstaSequence(); // 🔥 화면 자동 전환 시퀀스 시작!
+            runAutoInstaSequence();
           }
-        }, 5000); 
+        }, 5000);
       }, 1500);
     }
+  }
 
   function closeLineRoom() {
     currentLineRoom = null;
@@ -1469,6 +1480,8 @@
   }
 
   function goToInstaFromLine(target) {
+    if (currentLineRoom === 'draft') lineRooms.draft.visitedInsta = true; 
+    
     openApp('insta');
     if (target === 'profile' || target === 'reel') {
       showInstaProfile();
@@ -1485,6 +1498,7 @@
       }
     }
   }
+
 
   function renderLineMessages() {
     if (!currentLineRoom) return;
@@ -1562,8 +1576,7 @@
     area.scrollTop = area.scrollHeight;
   }
  
-function renderLineQuickChips() {
-    // 칩 생성 기능을 없앰 (아무것도 하지 않음)
+  function renderLineQuickChips() {
   }
 
   function sendQuickChip(idx) {
@@ -1573,12 +1586,12 @@ function renderLineQuickChips() {
     sendLineMessage();
   }
 
- ffunction appendKey(char) {
+  // 🔥 [수정 완료] 한글 합성과 컷신 잠금 처리 
+  function appendKey(char) {
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
     
     if (currentLineRoom === 'draft' && room.pushCompleted) {
-      // 컷신(인스타 다녀오기)이 안 끝났다면 모든 터치를 씹음 (경고창 없음)
       if (room.autoTypeStep === 0 && !room.visitedInsta) return; 
 
       const shouldAutoType = (room.autoTypeStep === 0 && room.visitedInsta) || (room.autoTypeStep === 1 && room.repliesFinished);
@@ -1590,120 +1603,122 @@ function renderLineQuickChips() {
     
     if (room.isTyping) return;
     const input = document.getElementById('line-input');
-    
-    // 🚨 한글 라이브러리가 정상적으로 안 불러와졌을 때 원인을 알려주는 방어 코드
-    if (typeof Hangul === 'undefined') {
-      alert("한글 합성 기능이 로드되지 않았습니다! 인터넷 연결을 확인하거나 script 태그 위치를 확인해주세요.");
-      input.value += char; 
-      return;
-    }
-
-    // 정상 작동 시: 한글 자음/모음 자연스럽게 합성
+    if (typeof Hangul === 'undefined') { input.value += char; return; }
     let chars = Hangul.disassemble(input.value);
     chars.push(char);
     input.value = Hangul.assemble(chars);
   }
 
-  // backspaceKey 함수 내부 교체 부분
   function backspaceKey() {
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
     
     if (currentLineRoom === 'draft' && room.pushCompleted) {
-      // 컷신 진행 중 터치 무시
       if (room.autoTypeStep === 0 && !room.visitedInsta) return; 
-
+      
       const shouldAutoType = (room.autoTypeStep === 0 && room.visitedInsta) || (room.autoTypeStep === 1 && room.repliesFinished);
       if (shouldAutoType) {
         triggerAutoType();
         return;
       }
     }
-    // ... 이하 동일 ...
     
     if (room.isTyping) return;
     const input = document.getElementById('line-input');
-    
-    // 라이브러리 로드 실패 시 예비용 지우기
-    if (typeof Hangul === 'undefined') {
-      input.value = input.value.slice(0, -1);
-      return;
-    }
-
-    // 정상 작동 시: 한글 자음/모음 단위로 자연스럽게 지우기
+    if (typeof Hangul === 'undefined') { input.value = input.value.slice(0, -1); return; }
     let chars = Hangul.disassemble(input.value);
     chars.pop();
     input.value = Hangul.assemble(chars);
   }
- 
-function sendLineMessage() {
-    if (!currentLineRoom) return;
-    
-    // ★ 핵심: 현재 방이 어디든 상관없이, 팝업 알림이 안 끝났으면 무조건 전송 차단! ★
-    if (!lineRooms.draft.pushCompleted) {
-      return; 
-    }
 
+  // 🔥 [수정 완료] 1, 2차 전송 및 텍스트 자동완성 연결 
+  function sendLineMessage() {
+    if (!currentLineRoom) return;
+    const room = lineRooms[currentLineRoom];
+    
+    if (!room.pushCompleted) return;
     const input = document.getElementById('line-input');
     const text = input.value.trim();
     if (!text) return;
 
-    const room = lineRooms[currentLineRoom];
     const divider = ensureTodayDivider(room);
     room.messages.push({ dateDivider: divider, sender: 'me', text, time: '오전 12:16' });
     room.time = '오전 12:16';
     input.value = '';
     renderLineMessages();
 
-    // 입력 내용에 따라 추가적인 답장(리액션) 연출
-    const matchedRule = autoReplyRules.find(r => text.includes(r.keyword));
-    if (matchedRule) {
-      runSequentialReplies(currentLineRoom, matchedRule.replies);
-    } else if (currentLineRoom === 'draft') {
+    if (currentLineRoom === 'draft' && room.autoTypeStep === 1 && !room.repliesFinished) {
       runSequentialReplies('draft', [
-        { name: "22옴", text: "다들 화이팅합시다ㅏㅏㅏㅏㅏ" }, 
-        { name: "22산타", text: "아자아자!!!!!!!" }
+        { name: "22옴", text: "부끄러워하긴 ㅋㅋㅋㅋ" }, 
+        { name: "22산타", text: "내일 경기장 가자마자 놀려야지" },
+        { name: "22넛", text: "ㅇㅈ" }
       ]);
+      
+      setTimeout(() => { room.repliesFinished = true; }, 4500); 
+    } 
+    else if (currentLineRoom === 'draft' && room.autoTypeStep === 2) {
+      runSequentialReplies('draft', [
+        { name: "22옴", text: "다들 화이팅하자고~~~~" },
+        { name: "22홍", text: "가자아아!!!" }
+      ]);
+      room.autoTypeStep = 3; 
+    }
+    else {
+      const matchedRule = autoReplyRules.find(r => text.includes(r.keyword));
+      if (matchedRule) runSequentialReplies(currentLineRoom, matchedRule.replies);
     }
   }
- 
+
   function triggerAutoType() {
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
 
-    if (currentLineRoom === 'draft' && room.pushCompleted && !room.autoTyped) {
-      room.autoTyped = true;
-      room.isTyping = true; // 연출 중 가상 키보드 입력 차단
+    if (currentLineRoom === 'draft' && room.pushCompleted) {
+      if (room.isTyping) return;
+      
       const input = document.getElementById('line-input');
-      input.value = "";
-
       const sleep = (ms) => new Promise(r => setTimeout(r, ms));
       const typeText = async (text) => {
         for (let i = 0; i < text.length; i++) {
           input.value += text.charAt(i);
-          // 실제 사람이 모바일에서 치는 듯한 속도 (70ms ~ 130ms)
           await sleep(70 + Math.random() * 60);
         }
       };
       const deleteText = async (count) => {
         for (let i = 0; i < count; i++) {
           input.value = input.value.slice(0, -1);
-          // 백스페이스로 지우는 속도 (50ms)
           await sleep(50);
         }
       };
 
-      (async () => {
-        await sleep(150); // 터치 직후 아주 짧은 대기
-        await typeText("아.."); await sleep(400); // 쓰고 나서 멈칫하는 시간
-        await deleteText(3);    await sleep(200);
-        await typeText("ㅋㅋㅋㅋ"); await sleep(350);
-        await deleteText(4);    await sleep(150);
-        await typeText("고맙"); await sleep(200);
-        await deleteText(2);    await sleep(200);
-        await typeText("ㅋㅋㅋ부끄럽네ㅜ");
-        room.isTyping = false; // 타이핑 종료 후 입력 차단 해제
-      })();
+      if (room.autoTypeStep === 0 && room.visitedInsta) {
+        room.isTyping = true;
+        input.value = "";
+        (async () => {
+          await sleep(150);
+          await typeText("아.."); await sleep(400);
+          await deleteText(3);    await sleep(200);
+          await typeText("ㅋㅋㅋㅋ"); await sleep(350);
+          await deleteText(4);    await sleep(150);
+          await typeText("고맙"); await sleep(200);
+          await deleteText(2);    await sleep(200);
+          await typeText("ㅋㅋㅋ부끄럽네ㅜ");
+          
+          room.autoTypeStep = 1; 
+          room.isTyping = false;
+        })();
+      } 
+      else if (room.autoTypeStep === 1 && room.repliesFinished) {
+        room.isTyping = true;
+        input.value = "";
+        (async () => {
+          await sleep(150);
+          await typeText("다들 내일 화이팅합시다ㅏㅏ"); 
+          
+          room.autoTypeStep = 2; 
+          room.isTyping = false;
+        })();
+      }
     }
   }
 
@@ -1711,7 +1726,6 @@ function sendLineMessage() {
     const room = lineRooms[roomId];
     let delay = 500;
     repliesArray.forEach((replyObj) => {
-      // 이름이 지정된 경우와 텍스트만 있는 경우 모두 처리
       const replyText = typeof replyObj === 'object' ? replyObj.text : replyObj;
       const replyName = typeof replyObj === 'object' ? replyObj.name : null;
 
@@ -2195,22 +2209,18 @@ function sendLineMessage() {
     currentTrackIdx = idx;
     const track = musicTracks[idx];
 
-    // UI 정보 업데이트 (제목, 아랫부분 커버, 다이나믹 아일랜드 커버)
     document.getElementById('music-now-title').textContent = track.title;
     document.getElementById('music-now-cover').src = track.cover;
     document.getElementById('island-music-cover').src = track.cover;
 
-    // 리스트를 다시 그려서 클릭한 곡만 볼드/컬러 처리 반영
     renderMusicList();
 
-    // 오디오 파일 교체 및 재생
     const player = document.getElementById('audio-player');
     if (track.audioSrc) {
       player.src = track.audioSrc;
       player.play().catch(e => console.log("오디오 재생 오류:", e));
       toggleMusic(true);
     } else {
-      // 오디오 파일 주소가 비어있을 경우 시각적인 재생 표시만 수행
       toggleMusic(true);
     }
   }
@@ -2247,7 +2257,7 @@ function sendLineMessage() {
   buildKeypad();
   buildKeyboard();
   buildPhotos();
-  renderMusicList(); // 음악 리스트 렌더링 호출
+  renderMusicList(); 
   renderSettings();
   renderInstaFeed();
   renderInstaProfileGrid();
