@@ -103,6 +103,7 @@
     .iphone-screen { border-radius: 0 !important; }
   }
 </style>
+ <script src="https://unpkg.com/hangul-js" type="text/javascript"></script>
 </head>
 <body>
 
@@ -1509,7 +1510,6 @@ function renderLineQuickChips() {
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
     
-    // 자동 타이핑 조건 충족 시, 일반 키 입력을 무시하고 자동 타이핑 실행
     if (currentLineRoom === 'draft' && room.pushCompleted && !room.autoTyped) {
       triggerAutoType();
       return;
@@ -1517,7 +1517,14 @@ function renderLineQuickChips() {
     
     if (room.isTyping) return;
     const input = document.getElementById('line-input');
-    input.value += char;
+    
+    // 🪄 Hangul.js를 이용한 자연스러운 한글 합성
+    // 1. 현재 입력된 텍스트를 자음/모음으로 분리
+    let chars = Hangul.disassemble(input.value);
+    // 2. 방금 누른 글자 추가
+    chars.push(char);
+    // 3. 다시 한글로 예쁘게 합성해서 화면에 출력
+    input.value = Hangul.assemble(chars);
   }
 
   function backspaceKey() {
@@ -1531,7 +1538,11 @@ function renderLineQuickChips() {
     
     if (room.isTyping) return;
     const input = document.getElementById('line-input');
-    input.value = input.value.slice(0, -1);
+    
+    // 🪄 지울 때도 한글 규칙에 맞게 자음/모음 단위로 삭제
+    let chars = Hangul.disassemble(input.value);
+    chars.pop(); // 맨 마지막 자음/모음 하나 제거
+    input.value = Hangul.assemble(chars);
   }
  
 function sendLineMessage() {
