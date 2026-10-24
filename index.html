@@ -1304,6 +1304,7 @@
 
   // 🔥 [추가 완료] 자동 컷신 시퀀스 
   // 🔥 [수정완료] 자동 컷신 시퀀스 시간 3초씩 지연
+  // 🔥 [수정완료] 자동 컷신 시퀀스 시간 조절 (적당히 빠르게)
   window.runAutoInstaSequence = function() {
     const room = lineRooms.draft;
     if (room.visitedInsta) return;
@@ -1314,16 +1315,16 @@
     const targetLink = links.find(el => el.textContent.includes('instagram.com'));
 
     if (targetLink) {
-      // 1. 링크 클릭 효과를 3초(3000ms) 뒤에 실행하여 대화 읽을 시간 확보
+      // 1. 링크 클릭 효과를 1.5초 뒤로 수정 (너무 답답하지 않게)
       setTimeout(() => {
         targetLink.style.transition = 'all 0.15s ease';
         targetLink.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
         targetLink.style.borderRadius = '4px';
         setTimeout(() => { targetLink.style.backgroundColor = 'transparent'; }, 200);
-      }, 3000); 
+      }, 1500); 
     }
 
-    // 2. 인스타 앱으로 전환되는 시간을 3.4초(3400ms) 뒤로 늦춤 (기존 0.4초)
+    // 2. 인스타 앱으로 전환되는 시간을 1.9초 뒤로 수정
     setTimeout(() => {
       openApp('insta');
       showInstaFeed(); 
@@ -1340,7 +1341,7 @@
         }
       }, 150);
 
-      // 3. 인스타 영상을 시청하고 라인으로 복귀하는 시간을 7.5초(7500ms)로 늦춤 (기존 4.5초)
+      // 3. 인스타 영상을 시청하고 라인으로 복귀하는 시간을 5.5초로 수정
       setTimeout(() => {
         document.querySelectorAll('#app-insta video').forEach(v => {
           v.pause();
@@ -1349,9 +1350,9 @@
         });
         openApp('line');
         openLineRoom('draft'); 
-      }, 7500); 
+      }, 5500); 
 
-    }, 3400); 
+    }, 1900); 
   };
  
   function updateLineBadges() {
@@ -1638,7 +1639,7 @@
     input.value = Hangul.assemble(chars);
   }
 
-  // 🔥 [수정 완료] 1, 2차 전송 및 텍스트 자동완성 연결 
+  // 1. 메시지 전송 및 친구들 자동 답장 흐름 처리
   function sendLineMessage() {
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
@@ -1649,38 +1650,42 @@
     if (!text) return;
 
     const divider = ensureTodayDivider(room);
-    room.messages.push({ dateDivider: divider, sender: 'me', text, time: '오전 12:18' });
-    room.time = '오전 12:18';
+    room.messages.push({ dateDivider: divider, sender: 'me', text, time: '오전 12:16' });
+    room.time = '오전 12:16';
     input.value = '';
     renderLineMessages();
 
-    if (currentLineRoom === 'draft' && room.autoTypeStep === 1 && !room.repliesFinished) {
-      runSequentialReplies('draft', [
-        { name: "22넛", text: "더 잘하셔야겠다" }, 
-        { name: "22옴", text: "ㅇㅈㅇㅈ" },
-        { name: "22산타", text: "아자아자ㅏㅏㅏ" }
-      ]);
-      
-      setTimeout(() => { room.repliesFinished = true; }, 4500); 
-    } 
-    else if (currentLineRoom === 'draft' && room.autoTypeStep === 2) {
-      runSequentialReplies('draft', [
-        { name: "22옴", text: "ㅋㅋㅋㅋ근데 누굴까?" },
-        { name: "22홍", text: "뭐가?" },
-        { name: "22옴", text: "푸니 안에 있는 분" },
-        { name: "22넛", text: "직원분이시겠지" }, 
-        { name: "22옴", text: "아ㅡㅡ 그걸 모르겠냐고" },
-        { name: "22산타", text: "그러게 그러고보니 본 적 없긴 하다" },
-        { name: "22홍", text: "오 갑자기 궁금하긴하다 누굴까" }
-      ]);
-      room.autoTypeStep = 3; 
+    // --- 컷신 시퀀스 진행 ---
+    if (currentLineRoom === 'draft') {
+      // 1단계: "부끄럽네ㅜ" 전송 후 친구들 4명 리액션
+      if (room.autoTypeStep === 1 && !room.repliesFinished) {
+        runSequentialReplies('draft', [
+          { name: "22넛", text: "ㅋㅋㅋㅋㅋㅋ" }, 
+          { name: "22옴", text: "푸니최애푸푸><" },
+          { name: "22홍", text: "꽤나부러웅디..." },
+          { name: "22산타", text: "ㅋㅋㅋㅋㅋ이와중에 부러워하는거 뭔데" }
+        ]);
+        // 4개의 대사가 다 올라온 후(약 5.5초 뒤) 다음 타이핑 해금
+        setTimeout(() => { room.repliesFinished = true; }, 5500); 
+        return;
+      } 
+      // 2단계: "더 잘하셔야겠다" 전송 후 아자아자 리액션
+      else if (room.autoTypeStep === 2) {
+        runSequentialReplies('draft', [
+          { name: "22옴", text: "아자아자ㅏㅏ" },
+          { name: "22홍", text: "가자아아!!!" }
+        ]);
+        room.autoTypeStep = 3; 
+        return;
+      }
     }
-    else {
-      const matchedRule = autoReplyRules.find(r => text.includes(r.keyword));
-      if (matchedRule) runSequentialReplies(currentLineRoom, matchedRule.replies);
-    }
+
+    // --- 컷신이 아닐 때의 일반 키워드 반응 ---
+    const matchedRule = autoReplyRules.find(r => text.includes(r.keyword));
+    if (matchedRule) runSequentialReplies(currentLineRoom, matchedRule.replies);
   }
 
+  // 2. 자동 타이핑 텍스트 변경
   function triggerAutoType() {
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
@@ -1703,6 +1708,7 @@
         }
       };
 
+      // 1단계 타이핑: 인스타 복귀 직후
       if (room.autoTypeStep === 0 && room.visitedInsta) {
         room.isTyping = true;
         input.value = "";
@@ -1720,20 +1726,34 @@
           room.isTyping = false;
         })();
       } 
+      // 2단계 타이핑: 친구들 리액션 4개가 끝난 후 입력창을 다시 눌렀을 때
       else if (room.autoTypeStep === 1 && room.repliesFinished) {
         room.isTyping = true;
         input.value = "";
         (async () => {
           await sleep(150);
-          await typeText("ㅋ쿠ㅜ분발하겠습니다 이놈들아"); 
+          await typeText("더 잘하셔야겠다"); 
           
           room.autoTypeStep = 2; 
           room.isTyping = false;
         })();
       }
+      // 3단계 타이핑: "아자아자" 리액션 2개가 끝난 후 입력창을 한 번 더 눌렀을 때
+      else if (room.autoTypeStep === 3 && room.secondRepliesFinished) {
+        room.isTyping = true;
+        input.value = "";
+        (async () => {
+          await sleep(150);
+          
+          // 👇 여기에 원하시는 3번째 대사를 입력하세요!
+          await typeText("ㅋㅋㅋㅋ분발하겠습니다 이놈들아ㅗ"); 
+          
+          room.autoTypeStep = 4; 
+          room.isTyping = false;
+        })();
+      }
     }
   }
-
   function runSequentialReplies(roomId, repliesArray) {
     const room = lineRooms[roomId];
     let delay = 500;
