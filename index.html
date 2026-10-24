@@ -379,6 +379,7 @@
           </div>
           <div id="line-keyboard" class="bg-[#d1d5db] p-1.5 pt-2 text-gray-900 select-none flex-shrink-0"></div>
         </div>
+      </div>
 
       <!-- PHONE -->
       <div id="app-phone" class="app-view app-hidden bg-white text-gray-900">
@@ -431,24 +432,27 @@
       <!-- INSTAGRAM -->
       <div id="app-insta" class="app-view app-hidden bg-white text-gray-900">
         <!-- 1) 일반 타임라인 피드 화면 -->
-        <div class="h-12 border-t border-gray-100 bg-white flex items-center justify-around flex-shrink-0">
-            <button onclick="showInstaFeed()"><svg class="w-6 h-6" viewBox="0 0 24 24" fill="#111"><path d="M12 2.5L2.5 10v11.5h7v-7h5v7h7V10L12 2.5z"/></svg></button>
-            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20.5 20.5L16 16"/></svg>
-            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M10 8.5v7l6-3.5-6-3.5z" fill="#111"/></svg>
-            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5s-8-4.9-8-11A4.6 4.6 0 0112 6.6 4.6 4.6 0 0120 9.5c0 6.1-8 11-8 11z"/></svg>
-            <button onclick="showInstaProfile()"><img src="https://blog.kakaocdn.net/dna/ChbNA/dJMcaik0LRs/AAAAAAAAAAAAAAAAAAAAAJocS2COfJC7CBey9m5S3ablDdHklE6wmkOEmBlEvwvJ/img.jpg?credential=yqXZFxpELC7KVnFOS48ylbz2pIh7yKj8&expires=1793458799&allow_ip=&allow_referer=&signature=SaG%2FbJ0UHH6sSldjgGEMx%2FNl12s%3D" class="w-6 h-6 rounded-full object-cover border border-gray-300" alt="me"></button>
+        <div id="insta-feed-screen" class="hidden flex-1 flex flex-col min-h-0 bg-white">
+          <div class="px-4 py-1.5 flex items-center justify-between flex-shrink-0">
+            <span class="text-[26px] font-bold italic tracking-tight" style="font-family:'Snell Roundhand','Segoe Script','Brush Script MT',cursive;">Instagram</span>
+            <div class="flex items-center gap-4">
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5s-8-4.9-8-11A4.6 4.6 0 0112 6.6 4.6 4.6 0 0120 9.5c0 6.1-8 11-8 11z"/></svg>
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M22 3L9.5 10.5M22 3l-7 18-5.5-10.5L22 3zM9.5 10.5L2 8l20-5"/></svg>
+            </div>
           </div>
-          </div>
+          
           <div id="insta-feed-scroll" class="flex-1 min-h-0 overflow-y-auto no-scrollbar">
             <div id="insta-stories" class="flex gap-3.5 px-3 py-2.5 overflow-x-auto no-scrollbar border-b border-gray-100"></div>
             <div id="insta-posts"></div>
           </div>
+          
+          <!-- 하단 내비게이션 바 -->
           <div class="h-12 border-t border-gray-100 bg-white flex items-center justify-around flex-shrink-0">
             <button onclick="showInstaFeed()"><svg class="w-6 h-6" viewBox="0 0 24 24" fill="#111"><path d="M12 2.5L2.5 10v11.5h7v-7h5v7h7V10L12 2.5z"/></svg></button>
             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20.5 20.5L16 16"/></svg>
             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M10 8.5v7l6-3.5-6-3.5z" fill="#111"/></svg>
             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5s-8-4.9-8-11A4.6 4.6 0 0112 6.6 4.6 4.6 0 0120 9.5c0 6.1-8 11-8 11z"/></svg>
-            <button onclick="showInstaProfile()"><img src="" class="w-6 h-6 rounded-full object-cover border border-gray-300" alt="me"></button>
+            <button onclick="showInstaProfile()"><img src="https://blog.kakaocdn.net/dna/ChbNA/dJMcaik0LRs/AAAAAAAAAAAAAAAAAAAAAJocS2COfJC7CBey9m5S3ablDdHklE6wmkOEmBlEvwvJ/img.jpg?credential=yqXZFxpELC7KVnFOS48ylbz2pIh7yKj8&expires=1793458799&allow_ip=&allow_referer=&signature=SaG%2FbJ0UHH6sSldjgGEMx%2FNl12s%3D" class="w-6 h-6 rounded-full object-cover border border-gray-300" alt="me"></button>
           </div>
         </div>
 
@@ -555,80 +559,6 @@
             </div>
             <div id="insta-profile-grid" class="grid grid-cols-3 gap-[1.5px] bg-white pb-4"></div>
           </div>
-        </div>
-      </div>
-
-      <!-- CALENDAR -->
-      <div id="app-calendar" class="app-view app-hidden bg-white text-gray-900">
-        <div class="px-4 pt-2 flex items-center justify-between text-blue-500 text-[15px]">
-          <button onclick="goHome()">‹ 2026년</button>
-          <div class="flex gap-3 font-bold">
-            <button onclick="switchCalendarMonth(9)" id="cal-btn-9" class="text-blue-600">9월</button>
-            <button onclick="switchCalendarMonth(10)" id="cal-btn-10" class="text-gray-400">10월</button>
-          </div>
-        </div>
-        <div class="px-4 mt-2 flex-1 flex flex-col">
-          <h1 id="cal-title" class="text-[28px] font-bold mb-3">9월</h1>
-          <div class="grid grid-cols-7 text-center text-[11px] text-gray-400 pb-2 border-b border-gray-100">
-            <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
-          </div>
-          <div id="cal-days-grid" class="grid grid-cols-7 text-center text-[14px] gap-y-3 py-3 border-b border-gray-100"></div>
-          <div id="cal-events-list" class="mt-4 space-y-2.5 overflow-y-auto no-scrollbar max-h-[250px]"></div>
-        </div>
-      </div>
-
-      <!-- SETTINGS -->
-      <div id="app-settings" class="app-view app-hidden bg-[#f2f2f7] text-gray-900">
-        <div class="px-4 pt-2 flex-1 flex flex-col overflow-y-auto no-scrollbar pb-6">
-          <h1 class="text-[30px] font-bold tracking-tight my-2 px-1">설정</h1>
-          <div class="bg-gray-200/80 rounded-xl px-3 py-1.5 text-[14px] text-gray-500 mb-4 flex items-center gap-1.5"><span>🔍</span><span>검색</span></div>
-          <div class="ios-group" style="margin-bottom:20px;">
-            <div class="ios-row" style="padding:10px 14px;gap:14px;">
-              <div class="w-14 h-14 rounded-full bg-gradient-to-b from-[#a1a1a6] to-[#6e6e73] text-white flex items-center justify-center text-[22px] font-semibold flex-shrink-0">P</div>
-              <div class="flex-1 min-w-0">
-                <p id="settings-device-name" class="font-semibold text-[19px] text-gray-900 leading-snug">Phuwin</p>
-                <p class="text-[13px] text-gray-500 truncate">Apple 계정, iCloud+ 및 기타</p>
-              </div>
-              <svg class="ios-chevron" viewBox="0 0 8 13" fill="none" stroke="#c4c4c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 1.5l5 5-5 5"/></svg>
-            </div>
-          </div>
-          <div id="settings-content"></div>
-        </div>
-      </div>
-
-      <!-- WEATHER -->
-      <div id="app-weather" class="app-view app-hidden bg-gradient-to-b from-[#1e3a8a] via-[#2563eb] to-[#60a5fa] text-white">
-        <div class="px-5 pt-6 flex-1 flex flex-col items-center text-center">
-          <p class="text-[12px] uppercase tracking-widest opacity-80">나의 위치</p>
-          <h1 class="text-[30px] font-semibold mt-0.5">태국</h1>
-          <p class="text-[76px] font-thin leading-none my-2">18°</p>
-          <p class="text-[16px] font-medium">대체로 맑음</p>
-          <p class="text-[14px] opacity-85 mt-0.5">최고:21° 최저:12°</p>
-          <div class="w-full bg-white/15 backdrop-blur-md rounded-2xl p-4 mt-8 text-left">
-            <p class="text-[12px] opacity-90 pb-3 border-b border-white/15">오후 내내 대체로 맑은 상태가 예상됩니다. 돌풍의 풍속은 최대 4m/s입니다.</p>
-            <div class="grid grid-cols-5 text-center pt-3 text-[13px]">
-              <div><p>지금</p><p class="my-2">🌙</p><p class="font-bold">18°</p></div>
-              <div><p>오전 1시</p><p class="my-2">🌙</p><p class="font-bold">11°</p></div>
-              <div><p>오전 2시</p><p class="my-2">🌙</p><p class="font-bold">10°</p></div>
-              <div><p>오전 3시</p><p class="my-2">🌙</p><p class="font-bold">10°</p></div>
-              <div><p>오전 4시</p><p class="my-2">🌙</p><p class="font-bold">10°</p></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- PHOTOS -->
-      <div id="app-photos" class="app-view app-hidden bg-white text-gray-900">
-        <div class="px-4 pt-2 flex-1 flex flex-col overflow-y-auto no-scrollbar">
-          <div class="flex justify-between items-center mb-2">
-            <div>
-              <h1 class="text-[26px] font-bold leading-tight">보관함</h1>
-              <p class="text-[12px] text-gray-500">6장의 사진</p>
-            </div>
-            <button onclick="goHome()" class="text-blue-500 text-[14px] font-medium">완료</button>
-          </div>
-          <p class="font-bold text-[15px] mt-2 mb-1.5">2026년 9월</p>
-          <div id="photo-grid" class="grid grid-cols-3 gap-1"></div>
         </div>
       </div>
 
