@@ -347,7 +347,7 @@
 
       <!-- LINE -->
       <div id="app-line" class="app-view app-hidden bg-white text-gray-900">
-        <div id="line-list-screen" class="w-full h-full flex flex-col overflow-hidden">
+        <div id="line-list-screen" class="flex-1 flex flex-col overflow-hidden">
           <div class="px-5 pt-2 pb-3 flex items-center justify-between flex-shrink-0">
             <h1 class="text-[22px] font-bold">대화</h1>
             <div class="flex items-center gap-4 text-[18px] text-gray-700"><span>🔍</span><span>💬</span><span>⚙️</span></div>
@@ -361,15 +361,15 @@
           </div>
         </div>
 
-        <div id="line-room-screen" class="hidden w-full h-full flex flex-col overflow-hidden bg-[#8cabd9]">
+        <div id="line-room-screen" class="hidden flex-1 flex flex-col min-h-0 bg-[#8cabd9]">
           <div class="h-11 px-3 flex items-center justify-between bg-[#8cabd9]/95 backdrop-blur z-10 text-white flex-shrink-0">
             <button onclick="closeLineRoom()" class="flex items-center gap-1 text-[15px] font-medium px-1"><span>‹</span><span id="line-back-count"></span></button>
             <span id="line-room-title" class="font-bold text-[15.5px]">22드랲</span>
             <div class="flex items-center gap-3 text-sm pr-1"><span>🔍</span><span>📞</span><span>☰</span></div>
           </div>
           
-          <!-- 👇 이 영역이 무조건 화면 안에서만 스크롤되도록 강제 고정 -->
-          <div id="line-messages-area" class="flex-1 overflow-y-auto px-3 py-2 space-y-2.5 no-scrollbar" style="-webkit-overflow-scrolling: touch; touch-action: pan-y;"></div>
+          <!-- 👇 화면 밖으로 튀어나가지 않고 스크롤이 무조건 먹히도록 min-h-0 와 overscroll-contain 추가 -->
+          <div id="line-messages-area" class="flex-1 min-h-0 overflow-y-auto px-3 py-2 space-y-2.5 no-scrollbar overscroll-contain"></div>
           
           <div id="line-quick-chips" class="bg-[#8cabd9] px-2.5 py-1.5 flex items-center gap-1.5 overflow-x-auto no-scrollbar border-t border-black/5 flex-shrink-0"></div>
           
@@ -1535,23 +1535,27 @@
         
         if (currentLineRoom === roomId) {
           renderLineMessages();
-          scrollToBottomLine();
-        } else {
-          room.unread += 1;
-          updateLineBadges();
-          showPushBanner(room.name, replyText, room.avatar, roomId);
-        }
-
-        if (idx === repliesArray.length - 1 && onComplete) {
-          setTimeout(onComplete, 400);
-        }
-      }, delay);
-      
-      delay += 300;
-    });
+         // ================= 0. 가상 시간 시스템 (12시 16분부터 시작해서 조금씩 증가) =================
+  let simMinutes = 16;
+  let msgCountForTime = 0;
+  function getSimTime() {
+    msgCountForTime++;
+    if (msgCountForTime % 4 === 0) simMinutes++; // 메시지 4개 보낼 때마다 1분씩 증가
+    let m = simMinutes < 10 ? '0' + simMinutes : simMinutes;
+    return `오전 12:${m}`;
   }
 
-  // ================= 1. 자동 타이핑 컷신 플로우 =================
+  // ================= 1. 스크롤 강제 맨 아래 함수 (스크롤 먹통 완벽 해결) =================
+  function scrollToBottomLine() {
+    const area = document.getElementById('line-messages-area');
+    if (area) {
+      // 버그를 유발하던 smooth 애니메이션 제거하고 즉시 바닥으로 고정
+      area.scrollTop = area.scrollHeight;
+      setTimeout(() => { area.scrollTop = area.scrollHeight; }, 30);
+    }
+  }
+
+  // ================= 2. 자동 타이핑 컷신 플로우 =================
   function triggerAutoType() {
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
@@ -1576,7 +1580,6 @@
         }
       };
 
-      // [1단계] 인스타 복귀 후 첫 문장
       if (room.autoTypeStep === 0 && room.visitedInsta) {
         room.isTyping = true;
         input.value = "";
@@ -1593,7 +1596,6 @@
           room.isTyping = false;
         })();
       } 
-      // [2단계] "더 잘하셔야겠다", "저러네ㅗ" 직후 ME 메시지 타이핑
       else if (room.autoTypeStep === 2 && room.repliesFinished1) {
         room.isTyping = true;
         input.value = "";
@@ -1604,7 +1606,6 @@
           room.isTyping = false;
         })();
       }
-      // [3단계] "진짜 누구지?" 폭풍 질문 온 후 (지웠다 쓰는 연출)
       else if (room.autoTypeStep === 4 && room.repliesFinished2) {
         room.isTyping = true;
         input.value = "";
@@ -1622,29 +1623,72 @@
     }
   }
 
-  // ================= 2. 전송 클릭 시 단계별 메시지 연계 =================
+  // ================= 3. 순차적 자동 답장 (시간 동기화) =================
+  function runSequentialReplies(roomId, repliesArray, onComplete) {
+    const room = lineRooms[roomId];
+    let delay = 300;
+    repliesArray.forEach((replyObj, idx) => {
+      const replyText = typeof replyObj === 'object' ? replyObj.text : replyObj;
+      const replyName = typeof replyObj === 'object' ? replyObj.name : null;
+
+      setTimeout(() => {
+        room.messages.push({ sender: 'typing', name: replyName, text: '...', time: '' });
+        if (currentLineRoom === roomId) renderLineMessages();
+        scrollToBottomLine();
+      }, delay);
+      
+      delay += 1000;
+      
+      setTimeout(() => {
+        room.messages = room.messages.filter(m => m.sender !== 'typing');
+        const divider = ensureTodayDivider(room);
+        const simTime = getSimTime(); // 오전 12:16, 17...
+        
+        room.messages.push({ dateDivider: divider, sender: 'them', name: replyName, text: replyText, time: simTime });
+        room.time = simTime;
+        
+        if (currentLineRoom === roomId) {
+          renderLineMessages();
+          scrollToBottomLine();
+        } else {
+          room.unread += 1;
+          updateLineBadges();
+          showPushBanner(room.name, replyText, room.avatar, roomId);
+        }
+
+        if (idx === repliesArray.length - 1 && onComplete) {
+          setTimeout(onComplete, 400);
+        }
+      }, delay);
+      
+      delay += 300;
+    });
+  }
+
+  // ================= 4. 전송 클릭 시 단계별 메시지 연계 =================
   function sendLineMessage() {
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
     if (!room.pushCompleted) return;
 
-    // 컷신 도중(타이핑 중)이거나 미전송 상태일 때 전송 버튼 무시
+    // 🔥 "누굴까." 전송 이후 컷신이 종료되면 더 이상 전송 불가 (완벽 잠금)
+    if (currentLineRoom === 'draft' && room.autoTypeStep >= 6) return;
+
+    // 컷신 도중이거나 미전송 상태일 때 버튼 무시
     if (currentLineRoom === 'draft' && [0, 2, 4].includes(room.autoTypeStep)) return;
 
     const input = document.getElementById('line-input');
     const text = input.value.trim();
     if (!text) return;
 
-    // 내가 친 메시지 렌더링 
     const divider = ensureTodayDivider(room);
-    room.messages.push({ dateDivider: divider, sender: 'me', text, time: '오전 12:16' });
-    room.time = '오전 12:16';
+    const simTime = getSimTime();
+    room.messages.push({ dateDivider: divider, sender: 'me', text, time: simTime });
+    room.time = simTime;
     input.value = '';
     renderLineMessages();
 
-    // 컷신 연결 제어
     if (currentLineRoom === 'draft') {
-      // 1단계 전송 직후 -> 친구들 대사 6개 출력 ("더 잘하셔야겠다", "저러네ㅗ" 포함)
       if (room.autoTypeStep === 1) {
         room.autoTypeStep = 2;
         runSequentialReplies('draft', [
@@ -1657,7 +1701,6 @@
         ], () => { room.repliesFinished1 = true; }); 
         return;
       } 
-      // 2단계 (ME: ㅋㅋㅋㅋ분발하겠습니다 이놈들아ㅗ) 전송 직후 -> "누굴까" 폭풍 질문
       else if (room.autoTypeStep === 3) {
         room.autoTypeStep = 4;
         runSequentialReplies('draft', [
@@ -1675,18 +1718,19 @@
         ], () => { room.repliesFinished2 = true; });
         return;
       }
-      // 3단계 ("누굴까.") 전송 직후 -> 컷신 종료
       else if (room.autoTypeStep === 5) {
-        room.autoTypeStep = 6; 
+        room.autoTypeStep = 6; // 대화 완전히 종료. 더 이상 안 보내짐.
       }
     }
   }
 
-  // ================= 3. 키보드 입력 및 지우기 연동 =================
   function appendKey(char) {
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
     
+    // 컷신 끝났으면 타자 안 쳐짐
+    if (currentLineRoom === 'draft' && room.autoTypeStep >= 6) return;
+
     if (currentLineRoom === 'draft' && room.pushCompleted) {
       if (room.autoTypeStep === 0 && room.visitedInsta) { triggerAutoType(); return; }
       if (room.autoTypeStep === 2 && room.repliesFinished1) { triggerAutoType(); return; }
@@ -1705,6 +1749,9 @@
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
     
+    // 컷신 끝났으면 타자 안 지워짐
+    if (currentLineRoom === 'draft' && room.autoTypeStep >= 6) return;
+
     if (currentLineRoom === 'draft' && room.pushCompleted) {
       if (room.autoTypeStep === 0 && room.visitedInsta) { triggerAutoType(); return; }
       if (room.autoTypeStep === 2 && room.repliesFinished1) { triggerAutoType(); return; }
