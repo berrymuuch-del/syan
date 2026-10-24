@@ -1155,7 +1155,9 @@
       isDragging = false;
       const deltaY = currentY - startY;
       lockEl.style.transition = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
-      if (deltaY < -90) {
+      
+      // 기존 -90에서 -20으로 수정하여 살짝만 터치해서 올려도 넘어가도록 변경
+      if (deltaY < -20) {
         const passView = document.getElementById('view-passcode');
         passView.classList.remove('hidden');
         passView.classList.add('flex');
@@ -1190,25 +1192,18 @@
     if (passInput.length >= 4) return;
     passInput += num;
     updatePassDots();
+    
     if (passInput.length === 4) {
-      if (passInput === CORRECT_PASSCODE) {
-        setTimeout(() => {
-          isUnlocked = true;
-          const passView = document.getElementById('view-passcode');
-          passView.classList.add('hidden');
-          passView.classList.remove('flex');
-          const homeView = document.getElementById('view-home');
-          homeView.classList.remove('hidden');
-          homeView.classList.add('flex');
-        }, 180);
-      } else {
-        const dotsContainer = document.getElementById('pass-dots-container');
-        dotsContainer.classList.remove('shake-anim');
-        void dotsContainer.offsetWidth;
-        dotsContainer.classList.add('shake-anim');
-        document.getElementById('passcode-label').textContent = "암호 다시 입력";
-        setTimeout(() => { passInput = ""; updatePassDots(); }, 380);
-      }
+      // 0705 번호 일치 여부 확인을 삭제하고 무조건 풀리게 수정
+      setTimeout(() => {
+        isUnlocked = true;
+        const passView = document.getElementById('view-passcode');
+        passView.classList.add('hidden');
+        passView.classList.remove('flex');
+        const homeView = document.getElementById('view-home');
+        homeView.classList.remove('hidden');
+        homeView.classList.add('flex');
+      }, 180);
     }
   }
 
