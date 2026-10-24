@@ -996,22 +996,55 @@
   }
 
   function buildKeyboard() {
-    const keyCls = 'bg-white rounded py-2 text-[14px] font-medium shadow-sm active:bg-gray-200';
-    const fnCls = 'bg-[#abb0ba] rounded py-2 text-[13px] font-medium';
-    const row = (chars) => chars.split('').map(c => `<button onclick="appendKey('${c}')" class="${keyCls}">${c}</button>`).join('');
+    const keyCls = 'bg-white rounded py-2 text-[14px] font-medium shadow-sm select-none transition-colors duration-75';
+    const fnCls = 'bg-[#abb0ba] rounded py-2 text-[13px] font-medium select-none transition-colors duration-75';
+    
+    // 🪄 핵심: onclick 대신 ontouchstart를 사용해 0.3초 딜레이를 원천 차단합니다!
+    const getEv = (c) => `ontouchstart="handleVKey(event, '${c}')" onmousedown="handleVKey(event, '${c}')"`;
+    
+    const row = (chars) => chars.split('').map(c => 
+      `<button ${getEv(c)} class="${keyCls}">${c}</button>`
+    ).join('');
+
     document.getElementById('line-keyboard').innerHTML = `
       <div class="grid grid-cols-10 gap-1 mb-1.5">${row('ㅂㅈㄷㄱㅅㅛㅕㅑㅐㅔ')}</div>
       <div class="grid grid-cols-9 gap-1 px-3 mb-1.5">${row('ㅁㄴㅇㄹㅎㅗㅓㅏㅣ')}</div>
       <div class="grid grid-cols-9 gap-1 mb-1.5">
         <button class="${fnCls}">⇧</button>${row('ㅋㅌㅊㅍㅠㅜㅡ')}
-        <button onclick="backspaceKey()" class="${fnCls}">⌫</button>
+        <button ${getEv('back')} class="${fnCls}">⌫</button>
       </div>
       <div class="grid grid-cols-4 gap-1">
-        <button class="bg-[#abb0ba] rounded py-2 text-[12px] font-medium">123</button>
-        <button onclick="appendKey(' ')" class="col-span-2 bg-white rounded py-2 text-[13px] font-medium shadow-sm active:bg-gray-200">스페이스</button>
-        <button onclick="sendLineMessage()" class="bg-[#06C755] text-white rounded py-2 text-[12px] font-medium">전송</button>
+        <button class="bg-[#abb0ba] rounded py-2 text-[12px] font-medium select-none">123</button>
+        <button ${getEv('space')} class="col-span-2 bg-white rounded py-2 text-[13px] font-medium shadow-sm select-none">스페이스</button>
+        <button ${getEv('enter')} class="bg-[#06C755] text-white rounded py-2 text-[12px] font-medium select-none">전송</button>
       </div>`;
   }
+
+  // 🪄 터치 즉시 글자가 입력되도록 돕는 번개속도 핸들러
+  window.handleVKey = function(e, char) {
+    if (e.type === 'mousedown' && e.button !== 0) return;
+    
+    // 모바일 브라우저의 더블탭 줌 대기시간(딜레이) 강제 취소
+    e.preventDefault(); 
+    
+    // 실제 키보드처럼 눌렸을 때 회색으로 깜빡이는 시각적 피드백
+    const btn = e.currentTarget;
+    const origBg = btn.className.includes('bg-white') ? 'bg-white' : (btn.className.includes('bg-[#06C755]') ? 'bg-[#06C755]' : 'bg-[#abb0ba]');
+    const activeBg = origBg === 'bg-white' ? 'bg-gray-200' : (origBg === 'bg-[#06C755]' ? 'bg-green-600' : 'bg-gray-400');
+    
+    btn.classList.remove(origBg);
+    btn.classList.add(activeBg);
+    setTimeout(() => {
+      btn.classList.remove(activeBg);
+      btn.classList.add(origBg);
+    }, 80);
+
+    // 알맞은 키보드 액션 실행
+    if (char === 'back') backspaceKey();
+    else if (char === 'space') appendKey(' ');
+    else if (char === 'enter') sendLineMessage();
+    else appendKey(char);
+  };
 
   function buildPhotos() {
     const photos = [
