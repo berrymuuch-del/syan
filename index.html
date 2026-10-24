@@ -63,7 +63,7 @@
   .ig-play span { width: 56px; height: 56px; border-radius: 50%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; }
   .ig-slide.playing .ig-play { opacity: 0; }
   .ig-mute { position: absolute; bottom: 10px; right: 10px; width: 28px; height: 28px; border-radius: 50%; background: rgba(0,0,0,0.65); color: #fff; font-size: 13px; display: flex; align-items: center; justify-content: center; }
-  .ig-vtag { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.55); color: #fff; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 6px; pointer-events: none; }
+  .ig-vtag { position: absolute top: 10px; left: 10px; background: rgba(0,0,0,0.55); color: #fff; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 6px; pointer-events: none; }
 
   .chk-row { display: flex; align-items: flex-start; gap: 14px; padding: 9px 0; cursor: pointer; }
   .chk-circle { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #c7c7cc; flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-top: 1px; transition: background 0.2s, border-color 0.2s; }
@@ -816,13 +816,14 @@
         { sender: "me", text: "다들 잘자.", time: "오후 11:10" },
         { sender: "them", name: "22넛", text: "ㅋㅋㅋㅋ냅다 재우네", time: "오후 11:10" }
       ],
-      // 컷신 진행 상태 변수
+      // 컷신 진행 상태 변수 (전체 복원 완료)
       hasTriggeredInitialPush: false,
       pushCompleted: false,
       autoTypeStep: 0,
       visitedInsta: false,
       repliesFinished1: false,
-      repliesFinished2: false
+      repliesFinished2: false,
+      repliesFinished3: false
     },
     mom: {
       id: "mom", name: "엄마", avatar: "", unread: 0, time: "어제",
@@ -946,23 +947,20 @@
   ];
 
   // ================= 스크롤 강제 맨 아래 함수 =================
-  // ================= 스크롤 강제 맨 아래 함수 =================
-function scrollToBottomLine() {
-  const area = document.getElementById('line-messages-area');
-  if (area) {
-    // 부드러운 스크롤(scroll-smooth)로 인한 딜레이 강제 해제
-    area.style.scrollBehavior = 'auto'; 
-    
-    requestAnimationFrame(() => {
-      area.scrollTop = area.scrollHeight;
-      setTimeout(() => { area.scrollTop = area.scrollHeight; }, 10);
-      setTimeout(() => { 
-        area.scrollTop = area.scrollHeight; 
-        area.style.scrollBehavior = 'smooth'; // 스크롤 후 다시 원상복구
-      }, 50);
-    });
+  function scrollToBottomLine() {
+    const area = document.getElementById('line-messages-area');
+    if (area) {
+      area.style.scrollBehavior = 'auto'; // 부드러운 스크롤 해제하여 즉각 스크롤
+      requestAnimationFrame(() => {
+        area.scrollTop = area.scrollHeight;
+        setTimeout(() => { area.scrollTop = area.scrollHeight; }, 10);
+        setTimeout(() => { 
+          area.scrollTop = area.scrollHeight; 
+          area.style.scrollBehavior = 'smooth'; // 복구
+        }, 50);
+      });
+    }
   }
-}
 
   // ================= 반복 UI 생성 =================
   function buildKeypad() {
@@ -1293,7 +1291,7 @@ function scrollToBottomLine() {
         targetLink.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
         targetLink.style.borderRadius = '4px';
         setTimeout(() => { targetLink.style.backgroundColor = 'transparent'; }, 200);
-      }, 800); // 1. 링크 클릭 효과 시간 단축
+      }, 800); 
     }
 
     setTimeout(() => {
@@ -1320,9 +1318,9 @@ function scrollToBottomLine() {
         });
         openApp('line');
         openLineRoom('draft'); 
-      }, 3500); // 3. 영상 시청 후 라인 복귀 속도 단축
+      }, 3500); 
 
-    }, 1200); // 2. 인스타 앱 전환 속도 단축
+    }, 1200); 
   };
 
   function updateLineBadges() {
@@ -1513,7 +1511,7 @@ function scrollToBottomLine() {
     scrollToBottomLine();
   }
 
-  // 🔥 [수정완료] 순차적 자동 답장 및 스크롤 완벽 동기화 
+  // 🔥 순차적 자동 답장 및 스크롤 완벽 동기화 
   function runSequentialReplies(roomId, repliesArray, onComplete) {
     const room = lineRooms[roomId];
     let delay = 300;
@@ -1553,44 +1551,7 @@ function scrollToBottomLine() {
     });
   }
 
-  function appendKey(char) {
-    if (!currentLineRoom) return;
-    const room = lineRooms[currentLineRoom];
-    
-    // 자동 타이핑 해금 시 클릭하면 바로 트리거
-    if (currentLineRoom === 'draft' && room.pushCompleted) {
-      if (room.autoTypeStep === 0 && room.visitedInsta) { triggerAutoType(); return; }
-      if (room.autoTypeStep === 2 && room.repliesFinished1) { triggerAutoType(); return; }
-      if (room.autoTypeStep === 4 && room.repliesFinished2) { triggerAutoType(); return; }
-    }
-    
-    if (room.isTyping) return;
-    const input = document.getElementById('line-input');
-    if (typeof Hangul === 'undefined') { input.value += char; return; }
-    let chars = Hangul.disassemble(input.value);
-    chars.push(char);
-    input.value = Hangul.assemble(chars);
-  }
-
-  function backspaceKey() {
-    if (!currentLineRoom) return;
-    const room = lineRooms[currentLineRoom];
-    
-    if (currentLineRoom === 'draft' && room.pushCompleted) {
-      if (room.autoTypeStep === 0 && room.visitedInsta) { triggerAutoType(); return; }
-      if (room.autoTypeStep === 2 && room.repliesFinished1) { triggerAutoType(); return; }
-      if (room.autoTypeStep === 4 && room.repliesFinished2) { triggerAutoType(); return; }
-    }
-    
-    if (room.isTyping) return;
-    const input = document.getElementById('line-input');
-    if (typeof Hangul === 'undefined') { input.value = input.value.slice(0, -1); return; }
-    let chars = Hangul.disassemble(input.value);
-    chars.pop();
-    input.value = Hangul.assemble(chars);
-  }
-
-  // 🔥 [수정완료] 자동 타이핑 컷신 플로우 
+  // 🔥 1. 자동 타이핑 컷신 플로우 (유실된 3단계 복구 및 4단계 확장)
   function triggerAutoType() {
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
@@ -1613,7 +1574,7 @@ function scrollToBottomLine() {
         }
       };
 
-      // 1단계 (인스타 복귀 후 첫 문장)
+      // [1단계] 인스타 복귀 후 첫 문장
       if (room.autoTypeStep === 0 && room.visitedInsta) {
         room.isTyping = true;
         input.value = "";
@@ -1631,44 +1592,55 @@ function scrollToBottomLine() {
           room.isTyping = false;
         })();
       } 
-      // 2단계 (친구들 첫 리액션 4개 끝난 후)
+      // [2단계] 친구들 첫 리액션 4개 끝난 후
       else if (room.autoTypeStep === 2 && room.repliesFinished1) {
         room.isTyping = true;
         input.value = "";
         (async () => {
           await sleep(100);
-          await typeText("ㅋㅋㅋㅋㅋㅋㅋ"); 
+          await typeText("더 잘하셔야겠다"); 
           room.autoTypeStep = 3; 
           room.isTyping = false;
         })();
       }
-      // 3단계 (친구들 두 번째 리액션 3개 끝난 후 - 전송 방지용)
+      // [3단계] "아자아자" 리액션 2개 끝난 후 (유실되었던 부분 복구!)
       else if (room.autoTypeStep === 4 && room.repliesFinished2) {
         room.isTyping = true;
         input.value = "";
         (async () => {
           await sleep(100);
-          await typeText("...그러게"); // 먼저 타이핑
-          await sleep(350);            // 멈칫
-          await deleteText(6);         // '...그러게' 지우기
-          await sleep(250);            // 멈칫
-          await typeText("누굴까"); // 다시 타이핑
+          await typeText("ㅋㅋㅋㅋ분발하겠습니다 이놈들아ㅗ"); 
           room.autoTypeStep = 5; 
+          room.isTyping = false;
+        })();
+      }
+      // [4단계] "누굴까" 질문 온 후 (지웠다 쓰는 연출)
+      else if (room.autoTypeStep === 6 && room.repliesFinished3) {
+        room.isTyping = true;
+        input.value = "";
+        (async () => {
+          await sleep(100);
+          await typeText("나도 누군지"); // 먼저 타이핑
+          await sleep(400);            // 멈칫
+          await deleteText(3);         // '누군지' 지우기
+          await sleep(300);            // 멈칫
+          await typeText("궁금하네ㅋㅋ"); // 다시 타이핑
+          room.autoTypeStep = 7; 
           room.isTyping = false;
         })();
       }
     }
   }
 
-  // 🔥 [수정완료] 전송 클릭 시 단계별 메시지 연계 
+  // 🔥 2. 전송 클릭 시 단계별 메시지 연계
   function sendLineMessage() {
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
     if (!room.pushCompleted) return;
 
-    // 5단계: 마지막 미전송 자동타이핑 상태일 때는 전송 자체를 무시함!
-    if (currentLineRoom === 'draft' && room.autoTypeStep === 5) {
-      return;
+    // 컷신 도중 미전송 상태에서 전송 방지 (오류 방지)
+    if (currentLineRoom === 'draft' && [0, 2, 4, 6, 7].includes(room.autoTypeStep)) {
+      if (room.autoTypeStep === 7) return; // 마지막 메시지는 전송 눌러도 무시하려면 유지
     }
 
     const input = document.getElementById('line-input');
@@ -1684,9 +1656,9 @@ function scrollToBottomLine() {
 
     // 컷신 연결 제어
     if (currentLineRoom === 'draft') {
-      // 1단계 전송 직후 -> 친구들 대사 4개 출력 (완벽 복구)
+      // 1단계 전송 직후 -> 친구들 대사 4개 출력
       if (room.autoTypeStep === 1) {
-        room.autoTypeStep = 2; // 바로 다음 대기 단계로 넘김
+        room.autoTypeStep = 2;
         runSequentialReplies('draft', [
           { name: "22넛", text: "ㅋㅋㅋㅋㅋㅋ" }, 
           { name: "22옴", text: "푸니최애푸푸><" },
@@ -1695,14 +1667,21 @@ function scrollToBottomLine() {
         ], () => { room.repliesFinished1 = true; }); 
         return;
       } 
-      // 3단계 전송 직후 -> 22산타의 추가 질문 포함 3개 출력
+      // 2단계 전송 직후 -> "아자아자" 2개 출력 (유실 복구)
       else if (room.autoTypeStep === 3) {
         room.autoTypeStep = 4;
         runSequentialReplies('draft', [
-          { name: "22옴", text: "더 잘하셔야게땅" },
-          { name: "22홍", text: "아자아자ㅏㅏㅏㅏ" },
-          { name: "22산타", text: "오 갑자기 궁금하긴하다 누굴까" }
+          { name: "22옴", text: "아자아자ㅏㅏ" },
+          { name: "22홍", text: "가자아아!!!" }
         ], () => { room.repliesFinished2 = true; });
+        return;
+      }
+      // 3단계 전송 직후 -> "누굴까" 질문 1개 출력
+      else if (room.autoTypeStep === 5) {
+        room.autoTypeStep = 6;
+        runSequentialReplies('draft', [
+          { name: "22산타", text: "오 갑자기 궁금하긴하다 누굴까" }
+        ], () => { room.repliesFinished3 = true; });
         return;
       }
     }
@@ -2216,6 +2195,11 @@ function scrollToBottomLine() {
   renderInstaProfileGrid();
   initLockScreenSwipe();
   updateLineBadges();
+  
+  // 키보드 이벤트 연결 추가
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Backspace') backspaceKey();
+  });
 </script>
 </body>
 </html>
