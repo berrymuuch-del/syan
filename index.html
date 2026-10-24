@@ -367,13 +367,12 @@
             <span id="line-room-title" class="font-bold text-[15.5px]">22드랲</span>
             <div class="flex items-center gap-3 text-sm pr-1"><span>🔍</span><span>📞</span><span>☰</span></div>
           </div>
-          <div id="line-messages-area" class="flex-1 overflow-y-auto px-3 py-2 space-y-2.5 no-scrollbar"></div>
+          <div id="line-messages-area" class="flex-1 overflow-y-auto px-3 py-2 space-y-2.5 no-scrollbar scroll-smooth"></div>
           <div id="line-quick-chips" class="bg-[#8cabd9] px-2.5 py-1.5 flex items-center gap-1.5 overflow-x-auto no-scrollbar border-t border-black/5"></div>
           
           <div id="line-input-container" class="bg-white px-2.5 py-2 flex items-center gap-2">
             <button class="w-7 h-7 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center text-lg leading-none">+</button>
-            <!-- 온클릭(onclick) 이벤트로 타이핑 연출 함수(triggerAutoType) 연결 -->
-            <input id="line-input" type="text" placeholder="메시지 입력" readonly inputmode="none" onfocus="this.blur()" onclick="triggerAutoType()" onkeydown="if(event.key==='Enter') sendLineMessage()" class="flex-1 bg-gray-100 rounded-full px-3.5 py-1.5 text-[16px] focus:outline-none">
+            <input id="line-input" type="text" placeholder="메시지 입력" readonly inputmode="none" onfocus="this.blur()" onclick="triggerAutoType()" class="flex-1 bg-gray-100 rounded-full px-3.5 py-1.5 text-[16px] focus:outline-none">
             <button onclick="sendLineMessage()" class="w-8 h-8 rounded-full bg-[#06C755] text-white flex items-center justify-center font-bold text-sm active:scale-90 transition">➤</button>
           </div>
           <div id="line-keyboard" class="bg-[#d1d5db] p-1.5 pt-2 text-gray-900 select-none"></div>
@@ -430,7 +429,7 @@
 
       <!-- INSTAGRAM -->
       <div id="app-insta" class="app-view app-hidden bg-white text-gray-900">
-        <!-- 1) 일반 타임라인 피드 화면 (좌측 상단 < 버튼 클릭 시 이동) -->
+        <!-- 1) 일반 타임라인 피드 화면 -->
         <div id="insta-feed-screen" class="hidden flex-1 flex flex-col min-h-0 bg-white">
           <div class="px-4 py-1.5 flex items-center justify-between flex-shrink-0">
             <span class="text-[26px] font-bold italic tracking-tight" style="font-family:'Snell Roundhand','Segoe Script','Brush Script MT',cursive;">Instagram</span>
@@ -448,20 +447,16 @@
             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20.5 20.5L16 16"/></svg>
             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M10 8.5v7l6-3.5-6-3.5z" fill="#111"/></svg>
             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5s-8-4.9-8-11A4.6 4.6 0 0112 6.6 4.6 4.6 0 0120 9.5c0 6.1-8 11-8 11z"/></svg>
-            <!-- [인스타 하단 탭 프로필 사진 변경 위치] -->
             <button onclick="showInstaProfile()"><img src="" class="w-6 h-6 rounded-full object-cover border border-gray-300" alt="me"></button>
           </div>
         </div>
 
-        <!-- 2) 요청하신 프로필 피드 화면 레이아웃 -->
+        <!-- 2) 프로필 피드 화면 -->
         <div id="insta-profile-screen" class="flex-1 flex flex-col min-h-0 bg-white">
-          <!-- 상단 헤더: < 아이디 + 파란 인증배지 / 알림 종 / 더보기 -->
           <div class="px-3.5 py-2 flex items-center justify-between flex-shrink-0">
             <button onclick="showInstaFeed()" class="flex items-center gap-2">
               <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 19l-7-7 7-7"/></svg>
-              <!-- [인스타 상단 아이디 변경 위치] -->
               <span class="text-[18px] font-bold tracking-tight text-gray-900">Win_917</span>
-              <!-- 파란색 공식 인증 배지 -->
               <svg class="w-[17px] h-[17px] text-[#0095f6] fill-current" viewBox="0 0 24 24">
                 <path d="M12 2l2.4 2.1 3.1-.4 1.2 2.9 3 1.2-.4 3.1L23.4 13l-2.1 2.4.4 3.1-3 1.2-1.2 2.9-3.1-.4L12 24.3l-2.4-2.1-3.1.4-1.2-2.9-3-1.2.4-3.1L.6 13l2.1-2.4-.4-3.1 3-1.2 1.2-2.9 3.1.4L12 2z"/>
                 <path d="M9.7 15.8l-3.2-3.2 1.4-1.4 1.8 1.8 4.6-4.6 1.4 1.4-6 6z" fill="#fff"/>
@@ -478,12 +473,9 @@
             </div>
           </div>
 
-          <!-- 프로필 본문 + 그리드 스크롤 영역 -->
           <div class="flex-1 overflow-y-auto no-scrollbar">
             <div class="px-4 pt-2 pb-3">
-              <!-- 프로필 사진 + 우측 이름 & 스탯 -->
               <div class="flex items-center">
-                <!-- [인스타 프로필 사진 변경 위치] src="" 안에 이미지 주소를 넣으면 사진이 뜨고, 비워두면 기본 회색 사람 아이콘이 보입니다 -->
                 <div class="w-[78px] h-[78px] rounded-full bg-[#d8dce3] flex items-center justify-center overflow-hidden relative flex-shrink-0 border border-gray-100">
                   <svg class="w-16 h-16 text-white mt-4" viewBox="0 0 24 24" fill="currentColor">
                     <circle cx="12" cy="8.5" r="4.2"/>
@@ -491,10 +483,7 @@
                   </svg>
                   <img src="https://blog.kakaocdn.net/dna/ChbNA/dJMcaik0LRs/AAAAAAAAAAAAAAAAAAAAAJocS2COfJC7CBey9m5S3ablDdHklE6wmkOEmBlEvwvJ/img.jpg?credential=yqXZFxpELC7KVnFOS48ylbz2pIh7yKj8&expires=1793458799&allow_ip=&allow_referer=&signature=SaG%2FbJ0UHH6sSldjgGEMx%2FNl12s%3D" onerror="this.style.display='none'" onload="if(this.getAttribute('src')) this.style.display='block'; else this.style.display='none';" class="w-full h-full object-cover absolute inset-0 hidden" alt="profile">
                 </div>
-
-                <!-- 이름 & 게시물/팔로워/팔로잉 -->
                 <div class="flex-1 pl-6">
-                  <!-- [프로필 이름 변경 위치] -->
                   <p class="font-bold text-[13.5px] text-gray-900 mb-2.5">Phuwin Tangsakyuen</p>
                   <div class="flex items-center justify-between pr-3">
                     <div>
@@ -512,14 +501,9 @@
                   </div>
                 </div>
               </div>
-
-              <!-- 소개글 & 파란색 @멘션 링크 -->
               <div class="mt-3 text-[13px] leading-snug">
-                <!-- [파란색 태그/소개글 변경 위치] -->
                 <p class="text-[#1d4ed8] cursor-pointer">@Teamblaze_official</p>
               </div>
-
-              <!-- 버튼 3개: 팔로잉 ⌄ / 메시지 / 친구추가 아이콘 -->
               <div class="flex items-center gap-1.5 mt-4 text-[13px] font-semibold">
                 <button class="flex-1 bg-[#efefef] active:bg-gray-200 py-1.5 rounded-lg flex items-center justify-center gap-1 text-gray-900">
                   <span>프로필 편집</span>
@@ -537,20 +521,15 @@
                   </svg>
                 </button>
               </div>
-
-              <!-- 스토리 하이라이트 동그라미 -->
               <div class="flex items-center gap-4 mt-4">
                 <div class="flex flex-col items-center gap-1 cursor-pointer">
                   <div class="w-[62px] h-[62px] rounded-full p-[3px] border border-gray-300 flex items-center justify-center">
-                    <!-- 하이라이트에 이미지를 넣으려면 bg-black 안에 <img src="주소">를 넣으시면 됩니다 -->
                     <div class="w-full h-full rounded-full bg-black overflow-hidden"></div>
                   </div>
                   <span class="text-[11px] text-gray-800 leading-none">.</span>
                 </div>
               </div>
             </div>
-
-            <!-- 중간 탭바 3개 (그리드 / 릴스 / 태그됨) -->
             <div class="grid grid-cols-3 border-t border-gray-100">
               <button class="py-2.5 flex justify-center items-center border-b-[1.5px] border-gray-900 text-gray-900">
                 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
@@ -573,8 +552,6 @@
                 </svg>
               </button>
             </div>
-
-            <!-- 3열 사진/릴스 그리드 (하단 스크립트 instaProfileGrid에서 자동 생성) -->
             <div id="insta-profile-grid" class="grid grid-cols-3 gap-[1.5px] bg-white pb-4"></div>
           </div>
         </div>
@@ -664,7 +641,6 @@
             <button onclick="toggleMusic(true)" class="bg-gray-100 text-rose-500 font-semibold py-2.5 rounded-xl text-[14px]">🔀 임의 재생</button>
           </div>
           
-          <!-- JS에서 동적으로 리스트가 생성되어 여기에 들어갑니다 -->
           <div id="music-list-container" class="divide-y divide-gray-100"></div>
 
           <div class="mt-auto mb-3 bg-gray-100 rounded-2xl p-2.5 flex items-center justify-between shadow-sm">
@@ -683,7 +659,7 @@
         </div>
       </div>
 
-      <!-- GLOBAL MEDIA MODAL (사진/영상 클릭 시 전체화면 확대 및 재생) -->
+      <!-- GLOBAL MEDIA MODAL -->
       <div id="photo-modal" onclick="closeMediaModal()" class="hidden absolute inset-0 bg-black/95 z-50 flex items-center justify-center p-3 cursor-pointer">
         <img id="photo-modal-img" src="" class="max-w-full max-h-[82%] rounded-xl object-contain" alt="zoom">
         <video id="photo-modal-video" src="" controls playsinline class="hidden max-w-full max-h-[82%] rounded-xl object-contain" onclick="event.stopPropagation()"></video>
@@ -720,25 +696,11 @@
 
   // ================= DATA & STATE =================
   let passInput = "";
-  const CORRECT_PASSCODE = "0705";
   let isUnlocked = false;
   let currentApp = null;
   let currentLineRoom = null;
   let isMusicPlaying = false;
   let callTimers = [];
-
-  // 22드랲 채팅방 알림 완료 후 자동 답장(리액션) 규칙
-  const autoReplyRules = [
-    { 
-      keyword: "부끄", 
-      replies: [
-        { name: "22넛", text: "ㅋㅋㅋㅋㅋㅋ" }, 
-        { name: "22옴", text: "푸니최애푸푸><" },
-        { name: "22홍", text: "꽤나부러웅디..." },
-        { name: "22산타", text: "ㅋㅋㅋㅋㅋ이와중에 부러워하는거 뭔데" }
-      ] 
-    }
-  ];
 
   // ================= MUSIC DATA =================
   let currentTrackIdx = 0;
@@ -747,19 +709,19 @@
       title: "You're The Prettiest girl In the world",
       artist: "phuwintang",
       cover: "https://blog.kakaocdn.net/dna/btLr2X/dJMcag8q0tN/AAAAAAAAAAAAAAAAAAAAAEXl-3OhLPkcHRMyIxVgnUBZFWmAgX59T0_u6L8C8o86/img.jpg?credential=yqXZFxpELC7KVnFOS48ylbz2pIh7yKj8&expires=1793458799&allow_ip=&allow_referer=&signature=E17XBfSQaP0eTgTf9wqNGHNtXA4%3D",
-      audioSrc: "https://blog.kakaocdn.net/dna/bwcHO5/dJMcaik0P7Y/AAAAAAAAAAAAAAAAAAAAALZiMmmK0BN1Dywk0KqjxR97-FCjH7MPthq9O5MAF61x/phuwintang%202024-07-20T221002.MP4?credential=yqXZFxpELC7KVnFOS48ylbz2pIh7yKj8&expires=1793458799&allow_ip=&allow_referer=&signature=VeOhcjcXed9ioPEJ%2BvV5iJWVNeQ%3D&attach=1&knm=tfile.MP4" // [음악 파일 1번 주소] 
+      audioSrc: "https://blog.kakaocdn.net/dna/bwcHO5/dJMcaik0P7Y/AAAAAAAAAAAAAAAAAAAAALZiMmmK0BN1Dywk0KqjxR97-FCjH7MPthq9O5MAF61x/phuwintang%202024-07-20T221002.MP4?credential=yqXZFxpELC7KVnFOS48ylbz2pIh7yKj8&expires=1793458799&allow_ip=&allow_referer=&signature=VeOhcjcXed9ioPEJ%2BvV5iJWVNeQ%3D&attach=1&knm=tfile.MP4"
     },
     {
       title: "into (end of the world)",
       artist: "phuwintang",
       cover: "https://blog.kakaocdn.net/dna/nwOs5/dJMcag8q0tM/AAAAAAAAAAAAAAAAAAAAALZQ6V6C9Lxi1g_MpvreGMJ26Bb6m0XfYLfsYvDoJysY/img.jpg?credential=yqXZFxpELC7KVnFOS48ylbz2pIh7yKj8&expires=1793458799&allow_ip=&allow_referer=&signature=sMS7KsvYomGdhZbYyowg1Etrfyw%3D",
-      audioSrc: "https://blog.kakaocdn.net/dna/cV76BA/dJMcahsXyDq/AAAAAAAAAAAAAAAAAAAAADxUEw1L-dfE5T_SQpSC-1vJxsMIQa1MGweX-oiDzDhH/phuwintang%202024-04-28T024449.MP4?credential=yqXZFxpELC7KVnFOS48ylbz2pIh7yKj8&expires=1793458799&allow_ip=&allow_referer=&signature=EwCHKKDeOgVcwwbfh4xr9VmJgUQ%3D&attach=1&knm=tfile.MP4" // [음악 파일 2번 주소]
+      audioSrc: "https://blog.kakaocdn.net/dna/cV76BA/dJMcahsXyDq/AAAAAAAAAAAAAAAAAAAAADxUEw1L-dfE5T_SQpSC-1vJxsMIQa1MGweX-oiDzDhH/phuwintang%202024-04-28T024449.MP4?credential=yqXZFxpELC7KVnFOS48ylbz2pIh7yKj8&expires=1793458799&allow_ip=&allow_referer=&signature=EwCHKKDeOgVcwwbfh4xr9VmJgUQ%3D&attach=1&knm=tfile.MP4"
     },
     {
       title: "like i do",
       artist: "phuwintang",
       cover: "https://blog.kakaocdn.net/dna/DtwoW/dJMcabzjs3u/AAAAAAAAAAAAAAAAAAAAAKT_RR875MXO8PwfutRwFzakBDyUMOw7nVfUSoq3tCaZ/img.jpg?credential=yqXZFxpELC7KVnFOS48ylbz2pIh7yKj8&expires=1793458799&allow_ip=&allow_referer=&signature=1foT2%2BZkNq%2FaMLyKK0yJD7xjtmg%3D",
-      audioSrc: "https://blog.kakaocdn.net/dna/6oXzh/dJMcahsXyDp/AAAAAAAAAAAAAAAAAAAAANFh54XfMED7FXIUp8Jy1MHx0MtcVffCghMUpGQefh6c/phuwintang%202023-05-27T204551.MP4?credential=yqXZFxpELC7KVnFOS48ylbz2pIh7yKj8&expires=1793458799&allow_ip=&allow_referer=&signature=0akBT6kuix%2Fwa1dS%2BM6Q3jQ4MBM%3D&attach=1&knm=tfile.MP4" // [음악 파일 3번 주소]
+      audioSrc: "https://blog.kakaocdn.net/dna/6oXzh/dJMcahsXyDp/AAAAAAAAAAAAAAAAAAAAANFh54XfMED7FXIUp8Jy1MHx0MtcVffCghMUpGQefh6c/phuwintang%202023-05-27T204551.MP4?credential=yqXZFxpELC7KVnFOS48ylbz2pIh7yKj8&expires=1793458799&allow_ip=&allow_referer=&signature=0akBT6kuix%2Fwa1dS%2BM6Q3jQ4MBM%3D&attach=1&knm=tfile.MP4"
     }
   ];
 
@@ -854,12 +816,13 @@
         { sender: "me", text: "다들 잘자.", time: "오후 11:10" },
         { sender: "them", name: "22넛", text: "ㅋㅋㅋㅋ냅다 재우네", time: "오후 11:10" }
       ],
-      // 🔥 [추가된 컷신용 상태 변수들]
+      // 컷신 진행 상태 변수
       hasTriggeredInitialPush: false,
       pushCompleted: false,
       autoTypeStep: 0,
       visitedInsta: false,
-      repliesFinished: false
+      repliesFinished1: false,
+      repliesFinished2: false
     },
     mom: {
       id: "mom", name: "엄마", avatar: "", unread: 0, time: "어제",
@@ -982,6 +945,18 @@
     { id: "newt", name: "블레이즈 뉴트 선배님", label: "휴대전화", time: "2026. 9. 14.", missed: false }
   ];
 
+  // ================= 스크롤 강제 맨 아래 함수 =================
+  function scrollToBottomLine() {
+    const area = document.getElementById('line-messages-area');
+    if (area) {
+      requestAnimationFrame(() => {
+        area.scrollTop = area.scrollHeight;
+        setTimeout(() => { area.scrollTop = area.scrollHeight; }, 20);
+        setTimeout(() => { area.scrollTop = area.scrollHeight; }, 100);
+      });
+    }
+  }
+
   // ================= 반복 UI 생성 =================
   function buildKeypad() {
     const subs = { '1': '', '2': 'ABC', '3': 'DEF', '4': 'GHI', '5': 'JKL', '6': 'MNO', '7': 'PQRS', '8': 'TUV', '9': 'WXYZ', '0': '' };
@@ -996,10 +971,9 @@
     }).join('');
   }
 
-  // 🔥 [수정완료] 0초 반응형 고속 타이핑 키보드 
   function buildKeyboard() {
     const kb = document.getElementById('line-keyboard');
-    kb.style.touchAction = 'none'; // 터치 딜레이 방지
+    kb.style.touchAction = 'none';
 
     const keyCls = 'bg-white rounded py-2 text-[14px] font-medium shadow-sm select-none transition-transform';
     const fnCls = 'bg-[#abb0ba] rounded py-2 text-[13px] font-medium select-none transition-transform';
@@ -1056,7 +1030,6 @@
     ).join('');
   }
 
-  // ================= MUSIC LIST RENDER =================
   function renderMusicList() {
     const container = document.getElementById('music-list-container');
     container.innerHTML = musicTracks.map((t, i) => {
@@ -1156,7 +1129,6 @@
       const deltaY = currentY - startY;
       lockEl.style.transition = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
       
-      // 기존 -90에서 -20으로 수정하여 살짝만 터치해서 올려도 넘어가도록 변경
       if (deltaY < -20) {
         const passView = document.getElementById('view-passcode');
         passView.classList.remove('hidden');
@@ -1194,7 +1166,6 @@
     updatePassDots();
     
     if (passInput.length === 4) {
-      // 0705 번호 일치 여부 확인을 삭제하고 무조건 풀리게 수정
       setTimeout(() => {
         isUnlocked = true;
         const passView = document.getElementById('view-passcode');
@@ -1299,12 +1270,7 @@
     document.getElementById('notes-list-screen').classList.remove('hidden');
   }
 
-
   // ================= LINE =================
-
-  // 🔥 [추가 완료] 자동 컷신 시퀀스 
-  // 🔥 [수정완료] 자동 컷신 시퀀스 시간 3초씩 지연
-  // 🔥 [수정완료] 자동 컷신 시퀀스 시간 조절 (적당히 빠르게)
   window.runAutoInstaSequence = function() {
     const room = lineRooms.draft;
     if (room.visitedInsta) return;
@@ -1315,16 +1281,14 @@
     const targetLink = links.find(el => el.textContent.includes('instagram.com'));
 
     if (targetLink) {
-      // 1. 링크 클릭 효과를 1.5초 뒤로 수정 (너무 답답하지 않게)
       setTimeout(() => {
         targetLink.style.transition = 'all 0.15s ease';
         targetLink.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
         targetLink.style.borderRadius = '4px';
         setTimeout(() => { targetLink.style.backgroundColor = 'transparent'; }, 200);
-      }, 1500); 
+      }, 800); // 1. 링크 클릭 효과 시간 단축
     }
 
-    // 2. 인스타 앱으로 전환되는 시간을 1.9초 뒤로 수정
     setTimeout(() => {
       openApp('insta');
       showInstaFeed(); 
@@ -1341,7 +1305,6 @@
         }
       }, 150);
 
-      // 3. 인스타 영상을 시청하고 라인으로 복귀하는 시간을 5.5초로 수정
       setTimeout(() => {
         document.querySelectorAll('#app-insta video').forEach(v => {
           v.pause();
@@ -1350,11 +1313,11 @@
         });
         openApp('line');
         openLineRoom('draft'); 
-      }, 5500); 
+      }, 3500); // 3. 영상 시청 후 라인 복귀 속도 단축
 
-    }, 1900); 
+    }, 1200); // 2. 인스타 앱 전환 속도 단축
   };
- 
+
   function updateLineBadges() {
     const total = Object.values(lineRooms).reduce((sum, r) => sum + (r.unread || 0), 0);
     const homeBadge = document.getElementById('badge-line');
@@ -1397,35 +1360,6 @@
     updateLineBadges();
   }
 
-  function updateLineInputState() {
-    const inputContainer = document.getElementById('line-input-container');
-    const keyboard = document.getElementById('line-keyboard');
-    const inputField = document.getElementById('line-input'); 
-    const chipBar = document.getElementById('line-quick-chips');
-
-    if (inputContainer) {
-      inputContainer.style.pointerEvents = 'auto';
-      inputContainer.style.opacity = '1';
-    }
-    if (keyboard) {
-      keyboard.style.pointerEvents = 'auto';
-      keyboard.style.opacity = '1';
-    }
-    if (inputField) {
-      inputField.disabled = false;
-      inputField.placeholder = "메시지 입력";
-    }
-
-    if (chipBar) {
-      if (lineRooms.draft.pushCompleted && currentLineRoom === 'draft' && autoReplyRules.length > 0) {
-        chipBar.classList.remove('hidden');
-      } else {
-        chipBar.classList.add('hidden');
-      }
-    }
-  }
-  
-  // 🔥 [수정 완료] 방 입장 및 컷신 실행 연결 
   function openLineRoom(roomId) {
     currentLineRoom = roomId;
     const room = lineRooms[roomId];
@@ -1435,11 +1369,8 @@
     document.getElementById('line-room-screen').classList.remove('hidden');
     document.getElementById('line-room-title').textContent = room.name;
     
-    updateLineInputState(); 
     renderLineMessages();
-    renderLineQuickChips();
 
-    // 푸시 알림 눌러서 방에 들어왔을 때 바로 컷신 실행
     if (roomId === 'draft' && room.pushCompleted && !room.visitedInsta) {
       setTimeout(() => { runAutoInstaSequence(); }, 600);
     }
@@ -1459,7 +1390,6 @@
         setTimeout(() => {
           lineRooms.draft.pushCompleted = true;
           if (currentLineRoom === 'draft' && !lineRooms.draft.visitedInsta) {
-            updateLineInputState();
             runAutoInstaSequence();
           }
         }, 5000);
@@ -1500,8 +1430,6 @@
     }
   }
 
-
-  // 🔥 [수정완료] 렌더링 지연시간을 추가하여 맨 아래로 확실하게 자동 스크롤되도록 수정
   function renderLineMessages() {
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
@@ -1575,38 +1503,58 @@
       }
     });
     area.innerHTML = html;
-    
-    // 화면이 그려질 시간(0.1초)을 아주 잠깐 준 뒤 스크롤을 제일 아래로 내려줌
-    setTimeout(() => {
-      if(area) {
-        area.scrollTop = area.scrollHeight;
-      }
-    }, 100);
-  }
- 
-  function renderLineQuickChips() {
+    scrollToBottomLine();
   }
 
-  function sendQuickChip(idx) {
-    const rule = autoReplyRules[idx];
-    if (!rule) return;
-    document.getElementById('line-input').value = rule.chipSendText;
-    sendLineMessage();
+  // 🔥 [수정완료] 순차적 자동 답장 및 스크롤 완벽 동기화 
+  function runSequentialReplies(roomId, repliesArray, onComplete) {
+    const room = lineRooms[roomId];
+    let delay = 300;
+    repliesArray.forEach((replyObj, idx) => {
+      const replyText = typeof replyObj === 'object' ? replyObj.text : replyObj;
+      const replyName = typeof replyObj === 'object' ? replyObj.name : null;
+
+      setTimeout(() => {
+        room.messages.push({ sender: 'typing', name: replyName, text: '...', time: '' });
+        if (currentLineRoom === roomId) renderLineMessages();
+        scrollToBottomLine();
+      }, delay);
+      
+      delay += 1000;
+      
+      setTimeout(() => {
+        room.messages = room.messages.filter(m => m.sender !== 'typing');
+        const divider = ensureTodayDivider(room);
+        room.messages.push({ dateDivider: divider, sender: 'them', name: replyName, text: replyText, time: '오전 12:16' });
+        room.time = '오전 12:16';
+        
+        if (currentLineRoom === roomId) {
+          renderLineMessages();
+          scrollToBottomLine();
+        } else {
+          room.unread += 1;
+          updateLineBadges();
+          showPushBanner(room.name, replyText, room.avatar, roomId);
+        }
+
+        if (idx === repliesArray.length - 1 && onComplete) {
+          setTimeout(onComplete, 400);
+        }
+      }, delay);
+      
+      delay += 300;
+    });
   }
 
-  // 🔥 [수정 완료] 한글 합성과 컷신 잠금 처리 
   function appendKey(char) {
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
     
+    // 자동 타이핑 해금 시 클릭하면 바로 트리거
     if (currentLineRoom === 'draft' && room.pushCompleted) {
-      if (room.autoTypeStep === 0 && !room.visitedInsta) return; 
-
-      const shouldAutoType = (room.autoTypeStep === 0 && room.visitedInsta) || (room.autoTypeStep === 1 && room.repliesFinished);
-      if (shouldAutoType) {
-        triggerAutoType();
-        return;
-      }
+      if (room.autoTypeStep === 0 && room.visitedInsta) { triggerAutoType(); return; }
+      if (room.autoTypeStep === 2 && room.repliesFinished1) { triggerAutoType(); return; }
+      if (room.autoTypeStep === 4 && room.repliesFinished2) { triggerAutoType(); return; }
     }
     
     if (room.isTyping) return;
@@ -1622,13 +1570,9 @@
     const room = lineRooms[currentLineRoom];
     
     if (currentLineRoom === 'draft' && room.pushCompleted) {
-      if (room.autoTypeStep === 0 && !room.visitedInsta) return; 
-      
-      const shouldAutoType = (room.autoTypeStep === 0 && room.visitedInsta) || (room.autoTypeStep === 1 && room.repliesFinished);
-      if (shouldAutoType) {
-        triggerAutoType();
-        return;
-      }
+      if (room.autoTypeStep === 0 && room.visitedInsta) { triggerAutoType(); return; }
+      if (room.autoTypeStep === 2 && room.repliesFinished1) { triggerAutoType(); return; }
+      if (room.autoTypeStep === 4 && room.repliesFinished2) { triggerAutoType(); return; }
     }
     
     if (room.isTyping) return;
@@ -1639,53 +1583,7 @@
     input.value = Hangul.assemble(chars);
   }
 
-  // 1. 메시지 전송 및 친구들 자동 답장 흐름 처리
-  function sendLineMessage() {
-    if (!currentLineRoom) return;
-    const room = lineRooms[currentLineRoom];
-    
-    if (!room.pushCompleted) return;
-    const input = document.getElementById('line-input');
-    const text = input.value.trim();
-    if (!text) return;
-
-    const divider = ensureTodayDivider(room);
-    room.messages.push({ dateDivider: divider, sender: 'me', text, time: '오전 12:16' });
-    room.time = '오전 12:16';
-    input.value = '';
-    renderLineMessages();
-
-    // --- 컷신 시퀀스 진행 ---
-    if (currentLineRoom === 'draft') {
-      // 1단계: "부끄럽네ㅜ" 전송 후 친구들 4명 리액션
-      if (room.autoTypeStep === 1 && !room.repliesFinished) {
-        runSequentialReplies('draft', [
-          { name: "22넛", text: "ㅋㅋㅋㅋㅋㅋ" }, 
-          { name: "22옴", text: "푸니최애푸푸><" },
-          { name: "22홍", text: "꽤나부러웅디..." },
-          { name: "22산타", text: "ㅋㅋㅋㅋㅋ이와중에 부러워하는거 뭔데" }
-        ]);
-        // 4개의 대사가 다 올라온 후(약 5.5초 뒤) 다음 타이핑 해금
-        setTimeout(() => { room.repliesFinished = true; }, 5500); 
-        return;
-      } 
-      // 2단계: "더 잘하셔야겠다" 전송 후 아자아자 리액션
-      else if (room.autoTypeStep === 2) {
-        runSequentialReplies('draft', [
-          { name: "22옴", text: "아자아자ㅏㅏ" },
-          { name: "22홍", text: "가자아아!!!" }
-        ]);
-        room.autoTypeStep = 3; 
-        return;
-      }
-    }
-
-    // --- 컷신이 아닐 때의 일반 키워드 반응 ---
-    const matchedRule = autoReplyRules.find(r => text.includes(r.keyword));
-    if (matchedRule) runSequentialReplies(currentLineRoom, matchedRule.replies);
-  }
-
-  // 2. 자동 타이핑 텍스트 변경
+  // 🔥 [수정완료] 자동 타이핑 컷신 플로우 
   function triggerAutoType() {
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
@@ -1698,7 +1596,7 @@
       const typeText = async (text) => {
         for (let i = 0; i < text.length; i++) {
           input.value += text.charAt(i);
-          await sleep(70 + Math.random() * 60);
+          await sleep(60 + Math.random() * 50);
         }
       };
       const deleteText = async (count) => {
@@ -1708,79 +1606,99 @@
         }
       };
 
-      // 1단계 타이핑: 인스타 복귀 직후
+      // 1단계 (인스타 복귀 후 첫 문장)
       if (room.autoTypeStep === 0 && room.visitedInsta) {
         room.isTyping = true;
         input.value = "";
         (async () => {
-          await sleep(150);
-          await typeText("아.."); await sleep(400);
-          await deleteText(3);    await sleep(200);
-          await typeText("ㅋㅋㅋㅋ"); await sleep(350);
-          await deleteText(4);    await sleep(150);
-          await typeText("고맙"); await sleep(200);
-          await deleteText(2);    await sleep(200);
+          await sleep(100);
+          await typeText("아.."); await sleep(250);
+          await deleteText(3);    await sleep(150);
+          await typeText("ㅋㅋㅋㅋ"); await sleep(250);
+          await deleteText(4);    await sleep(100);
+          await typeText("고맙"); await sleep(150);
+          await deleteText(2);    await sleep(150);
           await typeText("ㅋㅋㅋ부끄럽네ㅜ");
           
           room.autoTypeStep = 1; 
           room.isTyping = false;
         })();
       } 
-      // 2단계 타이핑: 친구들 리액션 4개가 끝난 후 입력창을 다시 눌렀을 때
-      else if (room.autoTypeStep === 1 && room.repliesFinished) {
+      // 2단계 (친구들 첫 리액션 4개 끝난 후)
+      else if (room.autoTypeStep === 2 && room.repliesFinished1) {
         room.isTyping = true;
         input.value = "";
         (async () => {
-          await sleep(150);
+          await sleep(100);
           await typeText("더 잘하셔야겠다"); 
-          
-          room.autoTypeStep = 2; 
+          room.autoTypeStep = 3; 
           room.isTyping = false;
         })();
       }
-      // 3단계 타이핑: "아자아자" 리액션 2개가 끝난 후 입력창을 한 번 더 눌렀을 때
-      else if (room.autoTypeStep === 3 && room.secondRepliesFinished) {
+      // 3단계 (친구들 두 번째 리액션 3개 끝난 후 - 전송 방지용)
+      else if (room.autoTypeStep === 4 && room.repliesFinished2) {
         room.isTyping = true;
         input.value = "";
         (async () => {
-          await sleep(150);
-          
-          // 👇 여기에 원하시는 3번째 대사를 입력하세요!
-          await typeText("ㅋㅋㅋㅋ분발하겠습니다 이놈들아ㅗ"); 
-          
-          room.autoTypeStep = 4; 
+          await sleep(100);
+          await typeText("...그러게"); // 먼저 타이핑
+          await sleep(350);            // 멈칫
+          await deleteText(6);         // '...그러게' 지우기
+          await sleep(250);            // 멈칫
+          await typeText("누굴까"); // 다시 타이핑
+          room.autoTypeStep = 5; 
           room.isTyping = false;
         })();
       }
     }
   }
-  function runSequentialReplies(roomId, repliesArray) {
-    const room = lineRooms[roomId];
-    let delay = 500;
-    repliesArray.forEach((replyObj) => {
-      const replyText = typeof replyObj === 'object' ? replyObj.text : replyObj;
-      const replyName = typeof replyObj === 'object' ? replyObj.name : null;
 
-      setTimeout(() => {
-        room.messages.push({ sender: 'typing', name: replyName, text: '...', time: '' });
-        if (currentLineRoom === roomId) renderLineMessages();
-      }, delay);
-      delay += 1200;
-      setTimeout(() => {
-        room.messages = room.messages.filter(m => m.sender !== 'typing');
-        const divider = ensureTodayDivider(room);
-        room.messages.push({ dateDivider: divider, sender: 'them', name: replyName, text: replyText, time: '오전 12:16' });
-        room.time = '오전 12:16';
-        if (currentLineRoom === roomId) {
-          renderLineMessages();
-        } else {
-          room.unread += 1;
-          updateLineBadges();
-          showPushBanner(room.name, replyText, room.avatar, roomId);
-        }
-      }, delay);
-      delay += 350;
-    });
+  // 🔥 [수정완료] 전송 클릭 시 단계별 메시지 연계 
+  function sendLineMessage() {
+    if (!currentLineRoom) return;
+    const room = lineRooms[currentLineRoom];
+    if (!room.pushCompleted) return;
+
+    // 5단계: 마지막 미전송 자동타이핑 상태일 때는 전송 자체를 무시함!
+    if (currentLineRoom === 'draft' && room.autoTypeStep === 5) {
+      return;
+    }
+
+    const input = document.getElementById('line-input');
+    const text = input.value.trim();
+    if (!text) return;
+
+    // 내가 친 메시지 렌더링 
+    const divider = ensureTodayDivider(room);
+    room.messages.push({ dateDivider: divider, sender: 'me', text, time: '오전 12:16' });
+    room.time = '오전 12:16';
+    input.value = '';
+    renderLineMessages();
+
+    // 컷신 연결 제어
+    if (currentLineRoom === 'draft') {
+      // 1단계 전송 직후 -> 친구들 대사 4개 출력 (완벽 복구)
+      if (room.autoTypeStep === 1) {
+        room.autoTypeStep = 2; // 바로 다음 대기 단계로 넘김
+        runSequentialReplies('draft', [
+          { name: "22넛", text: "ㅋㅋㅋㅋㅋㅋ" }, 
+          { name: "22옴", text: "푸니최애푸푸><" },
+          { name: "22홍", text: "꽤나부러웅디..." },
+          { name: "22산타", text: "ㅋㅋㅋㅋㅋ이와중에 부러워하는거 뭔데" }
+        ], () => { room.repliesFinished1 = true; }); 
+        return;
+      } 
+      // 3단계 전송 직후 -> 22산타의 추가 질문 포함 3개 출력
+      else if (room.autoTypeStep === 3) {
+        room.autoTypeStep = 4;
+        runSequentialReplies('draft', [
+          { name: "22옴", text: "아자아자ㅏㅏ" },
+          { name: "22홍", text: "가자아아!!!" },
+          { name: "22산타", text: "오 갑자기 궁금하긴하다 누굴까" }
+        ], () => { room.repliesFinished2 = true; });
+        return;
+      }
+    }
   }
 
   function pushIncomingLine(roomId, messages) {
@@ -1923,10 +1841,6 @@
   }
 
   // ================= INSTAGRAM =================
-  const IMG = (id, w = 600) => `https://images.unsplash.com/photo-${id}?w=${w}&auto=format&fit=crop&q=80`;
-  const VID_FLOWER = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
-  const VID_BUNNY = "https://www.w3schools.com/html/mov_bbb.mp4";
-
   const instaProfileGrid = [
     { thumb: "https://blog.kakaocdn.net/dna/E30Bz/dJMcaaN7c1f/AAAAAAAAAAAAAAAAAAAAAPqoL0odSCgnLCRBaZYpKVlnUGE5iEn0Sorhr-BjuJ5-/img.jpg?credential=yqXZFxpELC7KVnFOS48ylbz2pIh7yKj8&expires=1793458799&allow_ip=&allow_referer=&signature=L%2BXPkA0Cv%2BrSXzNDR9ZuWf1dhw0%3D", type: "reel" },
     { thumb: "https://blog.kakaocdn.net/dna/bRnxSj/dJMcadRpa0z/AAAAAAAAAAAAAAAAAAAAADp0UoE7_LWT-YiwwYGLN30LQZv-wsp4i17kDPsgAvl-/tfile.jpg?credential=yqXZFxpELC7KVnFOS48ylbz2pIh7yKj8&expires=1793458799&allow_ip=&allow_referer=&signature=OQFbDlB8jiE63%2FGR18zIj9S%2F1ok%3D", type: "carousel" },
@@ -2209,7 +2123,7 @@
     renderCalEvents();
   }
 
-  // ================= MEDIA MODAL (사진 & 영상 확대) =================
+  // ================= MEDIA MODAL =================
   function openPhotoModal(src) {
     const imgEl = document.getElementById('photo-modal-img');
     const vidEl = document.getElementById('photo-modal-video');
