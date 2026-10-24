@@ -720,6 +720,39 @@
  }
 </script>
 
+ function runAutoInstaSequence() {
+    const room = lineRooms.draft;
+    if (room.visitedInsta) return;
+
+    // 1. 채팅방 안의 인스타 링크 요소 찾기
+    const links = Array.from(document.querySelectorAll('#line-messages-area span.text-blue-600'));
+    const targetLink = links.find(el => el.textContent.includes('instagram.com'));
+
+    // 2. 사용자가 직접 터치한 것처럼 파란색 배경 깜빡임 연출
+    if (targetLink) {
+      targetLink.style.transition = 'all 0.15s ease';
+      targetLink.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
+      targetLink.style.borderRadius = '4px';
+      
+      setTimeout(() => {
+        targetLink.style.backgroundColor = 'transparent';
+      }, 200);
+    }
+
+    // 3. 0.4초 뒤 인스타 화면(0번 게시물)으로 자동 이동
+    setTimeout(() => {
+      goToInstaFromLine('0'); 
+      
+      // 4. 인스타 영상을 4.5초간 시청한 뒤 라인 채팅방으로 자동 복귀
+      setTimeout(() => {
+        openApp('line');
+        openLineRoom('draft');
+        // 복귀 후에는 키보드를 누르면 1차 자동입력이 시작됩니다.
+      }, 4500); 
+
+    }, 400);
+  }
+ 
 <script>
   // ================= DATA & STATE =================
   let passInput = "";
@@ -1398,30 +1431,29 @@
     renderLineMessages();
     renderLineQuickChips();
 
-    // 넛 대화방 입장 시 22드랲(5)에 푸시 알림 트리거 및 입력창(전송버튼) 활성화 대기
+    // 넛 대화방 입장 시 22드랲(5)에 푸시 알림 트리거 및 자동 컷신 대기
     if (roomId === 'nut' && !lineRooms.draft.hasTriggeredInitialPush) {
       lineRooms.draft.hasTriggeredInitialPush = true;
       setTimeout(() => {
         pushIncomingLine('draft', [
           { name: "22옴", text: "너네 이거 봤어? ㅋㅋㅋㅋ" },
-          { name: "22옴", text: "https://instagram.com/p/record._.17", instaLink: "instaPosts" },
+          { name: "22옴", text: "https://instagram.com/p/record._.17", instaLink: "0" },
           { name: "22넛", text: "탕큐 존나 잘해야겟네ㅜ" },
           { name: "22홍", text: "헐 귀여워 나때도 해주라고 해줘" },
           { name: "22산타", text: "ㅋㅋㅋㅋㅋㅋㅋㅋ" },
           { name: "22산타", text: "소감한말씀듣겠습니다ㅇㄹㄱ" }
         ]);
         
-        // 마지막 메시지가 도착할 즈음(3200ms 후) 22드랲(5) 방의 입력(전송) 기능 활성화
+        // 총 6개의 메시지가 다 도착하는 시간(약 5초) 대기 후 자동 컷신 실행
         setTimeout(() => {
           lineRooms.draft.pushCompleted = true;
           if (currentLineRoom === 'draft') {
             updateLineInputState();
-            renderLineQuickChips();
+            runAutoInstaSequence(); // 🔥 화면 자동 전환 시퀀스 시작!
           }
-        }, 3200);
+        }, 5000); 
       }, 1500);
     }
-  }
 
   function closeLineRoom() {
     currentLineRoom = null;
@@ -1541,13 +1573,19 @@ function renderLineQuickChips() {
     sendLineMessage();
   }
 
- function appendKey(char) {
+ ffunction appendKey(char) {
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
     
-    if (currentLineRoom === 'draft' && room.pushCompleted && !room.autoTyped) {
-      triggerAutoType();
-      return;
+    if (currentLineRoom === 'draft' && room.pushCompleted) {
+      // 컷신(인스타 다녀오기)이 안 끝났다면 모든 터치를 씹음 (경고창 없음)
+      if (room.autoTypeStep === 0 && !room.visitedInsta) return; 
+
+      const shouldAutoType = (room.autoTypeStep === 0 && room.visitedInsta) || (room.autoTypeStep === 1 && room.repliesFinished);
+      if (shouldAutoType) {
+        triggerAutoType();
+        return;
+      }
     }
     
     if (room.isTyping) return;
@@ -1566,14 +1604,22 @@ function renderLineQuickChips() {
     input.value = Hangul.assemble(chars);
   }
 
+  // backspaceKey 함수 내부 교체 부분
   function backspaceKey() {
     if (!currentLineRoom) return;
     const room = lineRooms[currentLineRoom];
     
-    if (currentLineRoom === 'draft' && room.pushCompleted && !room.autoTyped) {
-      triggerAutoType();
-      return;
+    if (currentLineRoom === 'draft' && room.pushCompleted) {
+      // 컷신 진행 중 터치 무시
+      if (room.autoTypeStep === 0 && !room.visitedInsta) return; 
+
+      const shouldAutoType = (room.autoTypeStep === 0 && room.visitedInsta) || (room.autoTypeStep === 1 && room.repliesFinished);
+      if (shouldAutoType) {
+        triggerAutoType();
+        return;
+      }
     }
+    // ... 이하 동일 ...
     
     if (room.isTyping) return;
     const input = document.getElementById('line-input');
